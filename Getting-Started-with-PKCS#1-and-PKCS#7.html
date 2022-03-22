@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>PKCS#1和PKCS#7入门 | 主人翁</title>
+    <meta property="og:title" content="PKCS#1和PKCS#7入门 - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="PKCS#1和PKCS#7入门">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/Getting-Started-with-PKCS#1-and-PKCS%237.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1pkcs1和pkcs7的区别">1、PKCS#1和PKCS#7的区别</a></li>
+        <li><a href="#2目前常见的几种方式p1签名验签">2、目前常见的几种方式:(P1签名验签)</a></li>
+        <li><a href="#3pkcs7-的-attached-和-detached-方式的数字签名">3、PKCS7 的 attached 和 detached 方式的数字签名</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">PKCS#1和PKCS#7入门</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D'>数字签名</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <h3 id="1pkcs1和pkcs7的区别">1、PKCS#1和PKCS#7的区别</h3>
+<ul>
+<li>P1签名:即裸签名,签名值中只有签名信息.</li>
+<li>p7签名:即,签名中可以带有其他的附加信息,例如签名证书信息,签名原文信息,时间戳信息等.
+所以要注意,不要p7的签名,用p1的方式来验签,这样是不对的.是错误的.</li>
+</ul>
+<p>PKCS#1：定义RSA公开密钥算法加密和签名机制，主要用于组织PKCS#7中所描述的数字签名和数字信封[22]。
+PKCS#7：定义一种通用的消息语法，包括数字签名和加密等用于增强的加密机制，PKCS#7与PEM兼容，所以不需其他密码操作，就可以将加密的消息转换成PEM消息[26]。</p>
+<h3 id="2目前常见的几种方式p1签名验签">2、目前常见的几种方式:(P1签名验签)</h3>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec">contentType<span style="color:#000;font-weight:bold">==</span>CT_MESSAGE时<span style="color:#a61717;background-color:#e3d2d2">，为待签名的消息；</span>
+contentType<span style="color:#000;font-weight:bold">==</span>CT_BASE64_DATA时<span style="color:#a61717;background-color:#e3d2d2">，为待签名的</span>base64编码数据<span style="color:#a61717;background-color:#e3d2d2">；</span>
+contentType<span style="color:#000;font-weight:bold">==</span>CT_HASH时为待签名的HASH<span style="color:#a61717;background-color:#e3d2d2">；</span>
+contentType<span style="color:#000;font-weight:bold">==</span>CT_FILE_URL时为待签名文件地址URL
+contentType<span style="color:#000;font-weight:bold">==</span> CT_STORAGE时为待签名内容存储编号
+</code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>CT_MESSAGE:即,告诉签名方,我发过去的内容,就是签名的原文.一般来说,因为签名值都是字节数组,所以签名方会根据约定的编码方式,对这个签名原文按规定的编码方式,取它的字节数组之后,进行签名</li>
+<li>CT_BASE64_DATA:因为有时候,我们要签名的原文,它就是一个byte[],但是为了方便传输,一般签名方都要求接受的是一个字符串.所以就有了这种签名方式.即:我们需要对签名原文的byte[]做base64编码,签名方收到之后,再做解码,并且把解码后的byte[]进行签名.
+所以我们本身验签的时候,只要传入byte[]就行.
+第三方返回的签名值,一般也是签名值byte[]做base64编码后的字符串,所以我们要做base64解码,才能获取到签名值byte[].</li>
+<li>CT_HASH:告诉签名方,我这个是对签名原文hash过了的hash串,你们直接对这个值进行加密即可,不需要再hash了.
+所以这种方式,我们本地验签的时候,要将原文放入进行验签,而不是hash过后的hash值(因为验签的时候,它又会hash一次)</li>
+</ul>
+<p>验签示例代码</p>
+<pre tabindex="0"><code>  /**
+     * 测试hash方式的签名验签
+     * @throws Exception 
+     */
+    @Test
+    public void testSignWithHash() {
+        try {
+            CertificateFactory cf = CertificateFactory.getInstance(&quot;X.509&quot;);  
+            Certificate usercert = cf.generateCertificate(new FileInputStream(USER_CERT)); 
+            PublicKey publicKey = usercert.getPublicKey();
+            //读取pfx证书上的秘钥对信息
+            BouncyCastleProvider provider = new BouncyCastleProvider();
+            Signature signature = Signature.getInstance(&quot;SHA1withRSA&quot;); 
+            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-1&quot;, provider);
+
+            List&lt;UserInfo&gt; userInfoList = userInfoService.findAll();
+            UserInfo userInfo = userInfoList.get(0);
+            Map&lt;String, Object&gt; puserCert = new HashMap&lt;&gt;();
+            puserCert.put(&quot;userInfo&quot;, userInfo);
+            List&lt;UserCert&gt; userCertList = userCertService.getListByParam(puserCert);
+            UserCert userCert = userCertList.get(0);
+            YuanZi_P1SignRequest yuanZiP1SignRequest = new YuanZi_P1SignRequest();
+            yuanZiP1SignRequest.setAlias(userInfo.getAlias());
+            yuanZiP1SignRequest.setHashAlg(&quot;SHA1&quot;);
+            yuanZiP1SignRequest.setContentType(&quot;CT_HASH&quot;);
+            String content = &quot;我是签名原文&quot;;
+
+            byte[] dataToSign = digest.digest(content.getBytes(Charset.forName(&quot;UTF-8&quot;)));
+            System.out.println(&quot;dataToSign:&quot;+Base64.encodeBytes(dataToSign));
+            yuanZiP1SignRequest.setContent(Base64.encodeBytes(dataToSign));
+            YuanZi_P1SignResponse yuanZiP1SignResponse = yuanZiService.signP1(yuanZiP1SignRequest);
+            System.out.println(&quot;原子服务返回的签名值:&quot;+yuanZiP1SignResponse.getSignedData());
+            byte[] dataHadSignature = Base64.decode(yuanZiP1SignResponse.getSignedData());
+
+            YuanZi_VerifyP1SignRequest yuanZiVerifyP1SignRequest = new YuanZi_VerifyP1SignRequest();
+            yuanZiVerifyP1SignRequest.setSignedData(yuanZiP1SignResponse.getSignedData());
+            yuanZiVerifyP1SignRequest.setContentType(&quot;CT_HASH&quot;);
+            yuanZiVerifyP1SignRequest.setContent(Base64.encodeBytes(dataToSign));
+            yuanZiVerifyP1SignRequest.setHashAlg(&quot;SHA1&quot;);
+            yuanZiVerifyP1SignRequest.setCert(userCert.getCertBuf().getCertsignBuf());
+            YuanZi_VerifyP1SignResponse yuanZiVerifyP1SignResponse = yuanZiService.verifyP1Sign(yuanZiVerifyP1SignRequest);
+            System.out.println(yuanZiVerifyP1SignResponse.getCode());
+
+            //本地验签
+            boolean verify=false;  
+            signature.initVerify(usercert);  //使用公钥初始化签名对象,用于验证签名  
+            signature.update(content.getBytes(Charset.forName(&quot;UTF-8&quot;)));
+            verify= signature.verify(dataHadSignature); //得到验证结果  
+            System.out.println(&quot;本地的验签结果:&quot;+verify);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // TODO: handle exception
+        }
+    }
+</code></pre><h3 id="3pkcs7-的-attached-和-detached-方式的数字签名">3、PKCS7 的 attached 和 detached 方式的数字签名</h3>
+<ul>
+<li>attached 方式是将签名内容和原文放在一起，按 PKCS7 的格式打包。PKCS7的结构中有一段可以放明文，但明文必需进行ASN.1编码。在进行数字签名验证的同时，提取明文。这里的明文实际上是真正内容的摘要。</li>
+<li>detached 方式打包的 PKCS7格式包中不包含明文信息。因此在验证的时候，还需要传递明文才能验证成功。同理，这里的明文实际上是真正内容的摘要
+从搜索结果来看，detached 方式的应用要频繁得多。</li>
+</ul>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/Getting-Started-with-PKCS#1-and-PKCS%237.html">https://www.cxztt.com/Getting-Started-with-PKCS#1-and-PKCS%237.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/2019alipay-pinduoduo-toutiao.html">2019alipay-pinduoduo-toutiao</a></li>
+        
+        <li><a href="/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html">2020程序员节总结-如何实现自我价值</a></li>
+        
+        <li><a href="/5-faces-Ali,-finally-got-the-offer.html">5面阿里,终获offer</a></li>
+        
+        <li><a href="/AQS.html">AQS</a></li>
+        
+        <li><a href="/ArrayList.html">ArrayList</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D'>数字签名</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

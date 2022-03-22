@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>常见GC算法说明 | 主人翁</title>
+    <meta property="og:title" content="常见GC算法说明 - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="常见GC算法说明">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/1888.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#一总体概述">一、总体概述</a></li>
+    <li><a href="#二年轻代垃圾回收">二、年轻代垃圾回收：</a>
+      <ul>
+        <li><a href="#1serial收集器">1、Serial收集器：</a></li>
+        <li><a href="#2parnew收集器">2、ParNew收集器：</a></li>
+        <li><a href="#3parallel-scavenge收集器">3、Parallel Scavenge收集器：</a></li>
+      </ul>
+    </li>
+    <li><a href="#三老年代回收期">三、老年代回收期：</a>
+      <ul>
+        <li><a href="#1serial-old收集器">1、Serial Old收集器：</a></li>
+        <li><a href="#2parallel-old收集器">2、Parallel Old收集器：</a></li>
+        <li><a href="#3cms收集器">3、CMS收集器：</a></li>
+      </ul>
+    </li>
+    <li><a href="#四g1收集器">四、G1收集器：</a></li>
+    <li><a href="#五总结">五、总结：</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">常见GC算法说明</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/java'>java</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <h2 id="一总体概述">一、总体概述</h2>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208101655.jpeg-94rg002">
+            <img class="mx-auto" alt="gc算法搭配" src="https://oss.94rg.com/figure_bed/20220208101655.jpeg-94rg002" />
+        </a>
+    </p>
+<table>
+<thead>
+<tr>
+<th>收集器</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serial  [ˈsɪəriəl]</td>
+<td>Serial收集器是最基本、发展历史最悠久的收集器，曾经（在JDK 1.3.1之前）是虚拟机新生代收集的唯一选择。单线程收集，用户线程等待</td>
+</tr>
+<tr>
+<td>ParNew</td>
+<td>Serial的多线程版本，用户线程等待</td>
+</tr>
+<tr>
+<td>Parrallel Scavenge</td>
+<td>并发的多线程收集器。吞吐量优先</td>
+</tr>
+<tr>
+<td>CMS</td>
+<td>并发的多线程收集器，响应时间优先</td>
+</tr>
+<tr>
+<td>Serial Old</td>
+<td>Serial的老年代版本</td>
+</tr>
+<tr>
+<td>Parallel Old</td>
+<td>Parrallel Scavenge的老年代版本</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>并发并行，大内存，分代。可预测</td>
+</tr>
+</tbody>
+</table>
+<p>图中展示了7种作用于不同分代的收集器，如果两个收集器之间存在连线，就说明它们可以搭配使用。虚拟机所处的区域，则表示它是属于新生代收集器还是老年代收集器。
+一、先来了解几个概念：</p>
+<p>1、并行与并发：</p>
+<p>并行（Parallel）：指多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态。</p>
+<p>并发（Concurrent）：指用户线程与垃圾收集线程同时执行（但不一定是并行的，可能会交替执行），用户程序在继续运行，而垃圾收集程序运行于另一个CPU上。</p>
+<p>2、minor gc和full gc：</p>
+<p>新生代GC（Minor GC）：指发生在新生代的垃圾收集动作，因为Java对象大多都具备朝生夕灭的特性，所以Minor GC非常频繁，一般回收速度也比较快。</p>
+<p>老年代GC（Major GC / Full GC）：指发生在老年代的GC，出现了Major GC，经常会伴随至少一次的Minor GC（但非绝对的，在Parallel Scavenge收集器的收集策略里就有直接进行Major GC的策略选择过程）。Major GC的速度一般会比Minor GC慢10倍以上。</p>
+<p>3、吞吐量：</p>
+<p>吞吐量就是CPU用于运行用户代码的时间与CPU总消耗时间的比值，即吞吐量 = 运行用户代码时间 /（运行用户代码时间 + 垃圾收集时间）。
+虚拟机总共运行了100分钟，其中垃圾收集花掉1分钟，那吞吐量就是99%。</p>
+<p>4、JVM运行模式：</p>
+<pre><code>  JVM如果不指定-server或-client选项，JVM会在启动的时候根据硬件环境判断以server模式启动还是以client模式启动（适用于Java 5及以上版本，Java 5检测的根据是至少2个CPU和最低2GB内存）。
+</code></pre>
+<p>JVM工作在server模式可以大大提高性能，但应用的启动会比client模式慢大概10%。</p>
+<p>当JVM用于启动GUI界面的交互应用时适合于使用client模式，当JVM用于运行服务器后台程序时建议用server模式。</p>
+<h2 id="二年轻代垃圾回收">二、年轻代垃圾回收：</h2>
+<h3 id="1serial收集器">1、Serial收集器：</h3>
+<p>Serial收集器是最基本、发展历史最悠久的收集器，曾经（在JDK 1.3.1之前）是虚拟机新生代收集的唯一选择。</p>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208102647.jpeg-94rg002">
+            <img class="mx-auto" alt="Serial收集器" src="https://oss.94rg.com/figure_bed/20220208102647.jpeg-94rg002" />
+        </a>
+    </p>
+<p>（1）特性：
+这个收集器是一个单线程的收集器，但它的“单线程”的意义并不仅仅说明它只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是在它进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束。Stop The World</p>
+<p>（2）应用场景：
+Serial收集器是虚拟机运行在Client模式下的默认新生代收集器；也可使用-XX:+UseSerialGC指定。</p>
+<p>（3）优势：
+简单而高效（与其他收集器的单线程比），对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，专心做垃圾收集自然可以获得最高的单线程收集效率。</p>
+<h3 id="2parnew收集器">2、ParNew收集器：</h3>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208102724.jpeg-94rg002">
+            <img class="mx-auto" alt="ParNew收集器" src="https://oss.94rg.com/figure_bed/20220208102724.jpeg-94rg002" />
+        </a>
+    </p>
+<p>（1）特性：
+ParNew收集器其实就是Serial收集器的多线程版本，除了使用多条线程进行垃圾收集之外，其余行为包括Serial收集器可用的所有控制参数、收集算法、Stop The World、对象分配规则、回收策略等都与Serial收集器完全一样，在实现上，这两种收集器也共用了相当多的代码。（内存分配、回收和PS相同，不同的仅在于会收拾会配合CMS做些处理）</p>
+<p>（2）应用场景：
+ParNew收集器是许多运行在Server模式下的虚拟机中首选的新生代收集器，可以和cms老年代回收期配合使用。当old代采用CMS GC时new代默认采用ParNew，也可以采用-XX:+UseParNewGC指定。</p>
+<p>很重要的原因是：除了Serial收集器外，目前只有它能与CMS收集器配合工作。</p>
+<p>在JDK 1.5时期，HotSpot推出了一款在强交互应用中几乎可认为有划时代意义的垃圾收集器——CMS收集器，这款收集器是HotSpot虚拟机中第一款真正意义上的并发收集器，它第一次实现了让垃圾收集线程与用户线程同时工作。
+不幸的是，CMS作为老年代的收集器，却无法与JDK 1.4.0中已经存在的新生代收集器Parallel Scavenge配合工作，所以在JDK 1.5中使用CMS来收集老年代的时候，新生代只能选择ParNew或者Serial收集器中的一个</p>
+<p>（3）Serial收集器 VS ParNew收集器：</p>
+<p>ParNew收集器在单CPU的环境中绝对不会有比Serial收集器更好的效果，甚至由于存在线程交互的开销，该收集器在通过超线程技术实现的两个CPU的环境中都不能百分之百地保证可以超越Serial收集器。
+然而，随着可以使用的CPU的数量的增加，它对于GC时系统资源的有效利用还是很有好处的。</p>
+<h3 id="3parallel-scavenge收集器">3、Parallel Scavenge收集器：</h3>
+<p>（1）特性：</p>
+<p>Parallel Scavenge收集器是一个新生代收集器，它也是使用复制算法的收集器，又是并行的多线程收集器。server模式下的默认GC方式，也可用-XX:+UseParallelGC强制指定。</p>
+<p>（2）应用场景：</p>
+<p>停顿时间越短就越适合需要与用户交互的程序，良好的响应速度能提升用户体验，而高吞吐量则可以高效率地利用CPU时间，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互的任务。</p>
+<p>（3）对比分析：</p>
+<p>A、Parallel Scavenge收集器 VS CMS等收集器：</p>
+<p>Parallel Scavenge收集器的特点是它的关注点与其他收集器不同，CMS等收集器的关注点是尽可能地缩短垃圾收集时用户线程的停顿时间，而Parallel Scavenge收集器的目标则是达到一个可控制的吞吐量（Throughput）。</p>
+<p>由于与吞吐量关系密切，Parallel Scavenge收集器也经常称为“吞吐量优先”收集器。</p>
+<p>B、Parallel Scavenge收集器 VS ParNew收集器：</p>
+<p>Parallel Scavenge收集器与ParNew收集器的一个重要区别是它具有自适应调节策略。</p>
+<p>GC自适应的调节策略：</p>
+<p>Parallel Scavenge收集器有一个参数-XX:+UseAdaptiveSizePolicy。当这个参数打开之后，就不需要手工指定新生代的大小、Eden与Survivor区的比例、晋升老年代对象年龄等细节参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量，这种调节方式称为GC自适应的调节策略（GC Ergonomics）。</p>
+<h2 id="三老年代回收期">三、老年代回收期：</h2>
+<h3 id="1serial-old收集器">1、Serial Old收集器：</h3>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208102807.jpeg-94rg002">
+            <img class="mx-auto" alt="Serial od收集器" src="https://oss.94rg.com/figure_bed/20220208102807.jpeg-94rg002" />
+        </a>
+    </p>
+<p>（1）特性：
+Serial Old是Serial收集器的老年代版本，它同样是一个单线程收集器，使用标记－整理算法。每次进行全部回收，进行Compact，非常耗费时间。</p>
+<p>（2）应用场景：</p>
+<p>A、Client模式：client模式下的默认GC方式，可通过-XX:+UseSerialGC强制指定。</p>
+<p>B、Server模式：在Server模式下，那么它主要还有两大用途：一种用途是在JDK 1.5以及之前的版本中与Parallel Scavenge收集器搭配使用，另一种用途就是作为CMS收集器的后备预案，在并发收集发生Concurrent Mode Failure时使用。</p>
+<h3 id="2parallel-old收集器">2、Parallel Old收集器：</h3>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208102836.jpeg-94rg002">
+            <img class="mx-auto" alt="Parallel Old收集器" src="https://oss.94rg.com/figure_bed/20220208102836.jpeg-94rg002" />
+        </a>
+    </p>
+<p>（1）特性：
+Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和“标记－整理”算法。</p>
+<p>（2）应用场景：
+在注重吞吐量以及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge加Parallel Old收集器。server模式下的默认GC方式，也可用-XX:+UseParallelGC=强制指定；可以在选项后加等号来制定并行的线程数。</p>
+<p>这个收集器是在JDK 1.6中才开始提供的，在此之前，新生代的Parallel Scavenge收集器一直处于比较尴尬的状态。原因是，如果新生代选择了Parallel Scavenge收集器，老年代除了Serial Old收集器外别无选择（Parallel Scavenge收集器无法与CMS收集器配合工作）。由于老年代Serial Old收集器在服务端应用性能上的“拖累”，使用了Parallel Scavenge收集器也未必能在整体应用上获得吞吐量最大化的效果，由于单线程的老年代收集中无法充分利用服务器多CPU的处理能力，在老年代很大而且硬件比较高级的环境中，这种组合的吞吐量甚至还不一定有ParNew加CMS的组合“给力”。直到Parallel Old收集器出现后，“吞吐量优先”收集器终于有了比较名副其实的应用组合。</p>
+<h3 id="3cms收集器">3、CMS收集器：</h3>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208102935.jpeg-94rg002">
+            <img class="mx-auto" alt="CMS收集器" src="https://oss.94rg.com/figure_bed/20220208102935.jpeg-94rg002" />
+        </a>
+    </p>
+<p>（1）特性：
+CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。目前很大一部分的Java应用集中在互联网站或者B/S系统的服务端上，这类应用尤其重视服务的响应速度，希望系统停顿时间最短，以给用户带来较好的体验。CMS收集器就非常符合这类应用的需求。可以使用-XX:+UseConcMarkSweepGC=指定使用，后边接等号指定并发线程数。</p>
+<p>CMS收集器是基于“标记—清除”算法实现的，它的运作过程相对于前面几种收集器来说更复杂一些，整个过程分为4个步骤：</p>
+<p>A、初始标记（CMS initial mark）：初始标记仅仅只是标记一下GC Roots能直接关联到的对象，速度很快，需要“Stop The World”。</p>
+<p>B、并发标记（CMS concurrent mark）：并发标记阶段就是进行GC Roots Tracing的过程。</p>
+<p>C、重新标记（CMS remark）：重新标记阶段是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段稍长一些，但远比并发标记的时间短，仍然需要“Stop The World”。</p>
+<p>D、并发清除（CMS concurrent sweep）：并发清除阶段会清除对象。</p>
+<p>由于整个过程中耗时最长的并发标记和并发清除过程收集器线程都可以与用户线程一起工作，所以，从总体上来说，CMS收集器的内存回收过程是与用户线程一起并发执行的。</p>
+<p>（2）优点：
+CMS是一款优秀的收集器，它的主要优点在名字上已经体现出来了：并发收集、低停顿。</p>
+<p>（3）缺点：</p>
+<p>A、CMS收集器对CPU资源非常敏感。其实，面向并发设计的程序都对CPU资源比较敏感。在并发阶段，它虽然不会导致用户线程停顿，但是会因为占用了一部分线程（或者说CPU资源）而导致应用程序变慢，总吞吐量会降低。</p>
+<p>CMS默认启动的回收线程数是（CPU数量+3）/ 4，也就是当CPU在4个以上时，并发回收时垃圾收集线程不少于25%的CPU资源，并且随着CPU数量的增加而下降。但是当CPU不足4个（譬如2个）时，CMS对用户程序的影响就可能变得很大。</p>
+<p>B、CMS收集器无法处理浮动垃圾：</p>
+<p>CMS收集器无法处理浮动垃圾，可能出现“Concurrent Mode Failure”失败而导致另一次Full GC的产生。</p>
+<p>由于CMS并发清理阶段用户线程还在运行着，伴随程序运行自然就还会有新的垃圾不断产生，这一部分垃圾出现在标记过程之后，CMS无法在当次收集中处理掉它们，只好留待下一次GC时再清理掉。这一部分垃圾就称为“浮动垃圾”。
+也是由于在垃圾收集阶段用户线程还需要运行，那也就还需要预留有足够的内存空间给用户线程使用，因此CMS收集器不能像其他收集器那样等到老年代几乎完全被填满了再进行收集，需要预留一部分空间提供并发收集时的程序运作使用。要是CMS运行期间预留的内存无法满足程序需要，就会出现一次“Concurrent Mode Failure”失败，这时虚拟机将启动后备预案：临时启用Serial Old收集器来重新进行老年代的垃圾收集，这样停顿时间就很长了。</p>
+<p>C、CMS收集器会产生大量空间碎片
+CMS是一款基于“标记—清除”算法实现的收集器，这意味着收集结束时会有大量空间碎片产生。空间碎片过多时，将会给大对象分配带来很大麻烦，往往会出现老年代还有很大空间剩余，但是无法找到足够大的连续空间来分配当前对象，不得不提前触发一次Full GC。</p>
+<h2 id="四g1收集器">四、G1收集器：</h2>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20220208102953.jpeg-94rg002">
+            <img class="mx-auto" alt="G1收集器" src="https://oss.94rg.com/figure_bed/20220208102953.jpeg-94rg002" />
+        </a>
+    </p>
+<p>1、特性：
+G1（Garbage-First）是一款面向服务端应用的垃圾收集器。HotSpot开发团队赋予它的使命是未来可以替换掉JDK 1.5中发布的CMS收集器。与其他GC收集器相比，G1具备如下特点。</p>
+<p>（1）并行与并发
+G1能充分利用多CPU、多核环境下的硬件优势，使用多个CPU来缩短Stop-The-World停顿的时间，部分其他收集器原本需要停顿Java线程执行的GC动作，G1收集器仍然可以通过并发的方式让Java程序继续执行。</p>
+<p>（2）分代收集
+与其他收集器一样，分代概念在G1中依然得以保留。虽然G1可以不需要其他收集器配合就能独立管理整个GC堆，但它能够采用不同的方式去处理新创建的对象和已经存活了一段时间、熬过多次GC的旧对象以获取更好的收集效果。</p>
+<p>（3）空间整合
+与CMS的“标记—清理”算法不同，G1从整体来看是基于“标记—整理”算法实现的收集器，从局部（两个Region之间）上来看是基于“复制”算法实现的，但无论如何，这两种算法都意味着G1运作期间不会产生内存空间碎片，收集后能提供规整的可用内存。这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次GC。</p>
+<p>（4）可预测的停顿
+这是G1相对于CMS的另一大优势，降低停顿时间是G1和CMS共同的关注点，但G1除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集上的时间不得超过N毫秒。</p>
+<p>在G1之前的其他收集器进行收集的范围都是整个新生代或者老年代，而G1不再是这样。使用G1收集器时，Java堆的内存布局就与其他收集器有很大差别，它将整个Java堆划分为多个大小相等的独立区域（Region），虽然还保留有新生代和老年代的概念，但新生代和老年代不再是物理隔离的了，它们都是一部分Region（不需要连续）的集合。</p>
+<p>G1收集器之所以能建立可预测的停顿时间模型，是因为它可以有计划地避免在整个Java堆中进行全区域的垃圾收集。G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region（这也就是Garbage-First名称的来由）。这种使用Region划分内存空间以及有优先级的区域回收方式，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率。</p>
+<p>2、执行过程：
+G1收集器的运作大致可划分为以下几个步骤：</p>
+<p>（1）初始标记（Initial Marking）
+初始标记阶段仅仅只是标记一下GC Roots能直接关联到的对象，并且修改TAMS（Next Top at Mark Start）的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这阶段需要停顿线程，但耗时很短。</p>
+<p>（2）并发标记（Concurrent Marking）
+并发标记阶段是从GC Root开始对堆中对象进行可达性分析，找出存活的对象，这阶段耗时较长，但可与用户程序并发执行。</p>
+<p>（3）最终标记（Final Marking）
+最终标记阶段是为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程Remembered Set Logs里面，最终标记阶段需要把Remembered Set Logs的数据合并到Remembered Set中，这阶段需要停顿线程，但是可并行执行。</p>
+<p>（4）筛选回收（Live Data Counting and Evacuation）
+筛选回收阶段首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划，这个阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分Region，时间是用户可控制的，而且停顿用户线程将大幅提高收集效率。</p>
+<h2 id="五总结">五、总结：</h2>
+<p>虽然我们是在对各个收集器进行比较，但并非为了挑选出一个最好的收集器。因为直到现在为止还没有最好的收集器出现，更加没有万能的收集器，所以我们选择的只是对具体应用最合适的收集器。这点不需要多加解释就能证明：如果有一种放之四海皆准、任何场景下都适用的完美收集器存在，那HotSpot虚拟机就没必要实现那么多不同的收集器了。</p>
+<p>比较推荐的组合方式：</p>
+<p>（1）web接口交互的系统：使用ParNew+CMS组合，可以提高响应时间；</p>
+<p>（2）服务型的系统：使用parallel scavenge + parallel old，可以提高吞吐量；</p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/1888.html">https://www.cxztt.com/1888.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/1848.html">DataSource和Transactional原理介绍</a></li>
+        
+        <li><a href="/Itext-e-signature-pdf-template.html">Itext对pdf模板进行电子签名</a></li>
+        
+        <li><a href="/1873.html">Jackson使用指南</a></li>
+        
+        <li><a href="/SimpleDateFormat-format-description.html">SimpleDateFormat格式说明</a></li>
+        
+        <li><a href="/Druid-configures-database-connections-to-use-ciphertext-passwords.html">druid配置数据库连接使用密文密码</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/java'>java</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

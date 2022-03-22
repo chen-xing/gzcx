@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>类加载器 | 主人翁</title>
+    <meta property="og:title" content="类加载器 - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="类加载器">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/class-loader.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#回顾一下类加载过程">回顾一下类加载过程</a></li>
+    <li><a href="#类加载器总结">类加载器总结</a></li>
+    <li><a href="#双亲委派模型">双亲委派模型</a>
+      <ul>
+        <li><a href="#双亲委派模型介绍">双亲委派模型介绍</a></li>
+        <li><a href="#双亲委派模型实现源码分析">双亲委派模型实现源码分析</a></li>
+        <li><a href="#双亲委派模型的好处">双亲委派模型的好处</a></li>
+        <li><a href="#如果我们不想用双亲委派模型怎么办">如果我们不想用双亲委派模型怎么办？</a></li>
+      </ul>
+    </li>
+    <li><a href="#自定义类加载器">自定义类加载器</a></li>
+    <li><a href="#推荐阅读">推荐阅读</a>
+      <ul>
+        <li><a href="#公众号">公众号</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">类加载器</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89'>他山之玉</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <p>点击关注<a href="#%E5%85%AC%E4%BC%97%E5%8F%B7">公众号</a>及时获取笔主最新更新文章，并可免费领取本文档配套的《Java面试突击》以及Java工程师必备学习资源。</p>
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#%E5%9B%9E%E9%A1%BE%E4%B8%80%E4%B8%8B%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B">回顾一下类加载过程</a></li>
+<li><a href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E6%80%BB%E7%BB%93">类加载器总结</a></li>
+<li><a href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B">双亲委派模型</a>
+<ul>
+<li><a href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B%E4%BB%8B%E7%BB%8D">双亲委派模型介绍</a></li>
+<li><a href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">双亲委派模型实现源码分析</a></li>
+<li><a href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%A5%BD%E5%A4%84">双亲委派模型的好处</a></li>
+<li><a href="#%E5%A6%82%E6%9E%9C%E6%88%91%E4%BB%AC%E4%B8%8D%E6%83%B3%E8%A6%81%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B%E6%80%8E%E4%B9%88%E5%8A%9E">如果我们不想要双亲委派模型怎么办？</a></li>
+</ul>
+</li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8">自定义类加载器</a></li>
+<li><a href="#%E6%8E%A8%E8%8D%90">推荐</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<blockquote>
+<p>公众号JavaGuide 后台回复关键字“1”，免费获取JavaGuide配套的Java工程师必备学习资源(文末有公众号二维码)。</p>
+</blockquote>
+<h2 id="回顾一下类加载过程">回顾一下类加载过程</h2>
+<p>类加载过程：<strong>加载-&gt;连接-&gt;初始化</strong>。连接过程又可分为三步:<strong>验证-&gt;准备-&gt;解析</strong>。</p>
+<p>
+        <a data-fancybox="gallery" href="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87%e7%a8%8b.png">
+            <img class="mx-auto" alt="类加载过程" src="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/%e7%b1%bb%e5%8a%a0%e8%bd%bd%e8%bf%87%e7%a8%8b.png" />
+        </a>
+    </p>
+<p>一个非数组类的加载阶段（加载阶段获取类的二进制字节流的动作）是可控性最强的阶段，这一步我们可以去完成还可以自定义类加载器去控制字节流的获取方式（重写一个类加载器的 <code>loadClass()</code> 方法）。数组类型不通过类加载器创建，它由 Java 虚拟机直接创建。</p>
+<p>所有的类都由类加载器加载，加载的作用就是将 .class文件加载到内存。</p>
+<h2 id="类加载器总结">类加载器总结</h2>
+<p>JVM 中内置了三个重要的 ClassLoader，除了 BootstrapClassLoader 其他类加载器均由 Java 实现且全部继承自<code>java.lang.ClassLoader</code>：</p>
+<ol>
+<li><strong>BootstrapClassLoader(启动类加载器)</strong> ：最顶层的加载类，由C++实现，负责加载 <code>%JAVA_HOME%/lib</code>目录下的jar包和类或者或被 <code>-Xbootclasspath</code>参数指定的路径中的所有类。</li>
+<li><strong>ExtensionClassLoader(扩展类加载器)</strong> ：主要负责加载目录 <code>%JRE_HOME%/lib/ext</code> 目录下的jar包和类，或被 <code>java.ext.dirs</code> 系统变量所指定的路径下的jar包。</li>
+<li><strong>AppClassLoader(应用程序类加载器)</strong> :面向我们用户的加载器，负责加载当前应用classpath下的所有jar包和类。</li>
+</ol>
+<h2 id="双亲委派模型">双亲委派模型</h2>
+<h3 id="双亲委派模型介绍">双亲委派模型介绍</h3>
+<p>每一个类都有一个对应它的类加载器。系统中的 ClassLoder 在协同工作的时候会默认使用 <strong>双亲委派模型</strong> 。即在类加载的时候，系统会首先判断当前类是否被加载过。已经被加载的类会直接返回，否则才会尝试加载。加载的时候，首先会把该请求委派该父类加载器的 <code>loadClass()</code> 处理，因此所有的请求最终都应该传送到顶层的启动类加载器 <code>BootstrapClassLoader</code> 中。当父类加载器无法处理时，才由自己来处理。当父类加载器为null时，会使用启动类加载器 <code>BootstrapClassLoader</code> 作为父类加载器。</p>
+<p>
+        <a data-fancybox="gallery" href="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/classloader_WPS%e5%9b%be%e7%89%87.png">
+            <img class="mx-auto" alt="ClassLoader" src="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/classloader_WPS%e5%9b%be%e7%89%87.png" />
+        </a>
+    </p>
+<p>每个类加载都有一个父类加载器，我们通过下面的程序来验证。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000;font-weight:bold">public</span> <span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">ClassLoaderDemo</span> <span style="color:#000;font-weight:bold">{</span>
+    <span style="color:#000;font-weight:bold">public</span> <span style="color:#000;font-weight:bold">static</span> <span style="color:#458;font-weight:bold">void</span> <span style="color:#900;font-weight:bold">main</span><span style="color:#000;font-weight:bold">(</span>String<span style="color:#000;font-weight:bold">[]</span> args<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#d14">&#34;ClassLodarDemo&#39;s ClassLoader is &#34;</span> <span style="color:#000;font-weight:bold">+</span> ClassLoaderDemo<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">class</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">getClassLoader</span><span style="color:#000;font-weight:bold">());</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#d14">&#34;The Parent of ClassLodarDemo&#39;s ClassLoader is &#34;</span> <span style="color:#000;font-weight:bold">+</span> ClassLoaderDemo<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">class</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">getClassLoader</span><span style="color:#000;font-weight:bold">().</span><span style="color:#008080">getParent</span><span style="color:#000;font-weight:bold">());</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#d14">&#34;The GrandParent of ClassLodarDemo&#39;s ClassLoader is &#34;</span> <span style="color:#000;font-weight:bold">+</span> ClassLoaderDemo<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">class</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">getClassLoader</span><span style="color:#000;font-weight:bold">().</span><span style="color:#008080">getParent</span><span style="color:#000;font-weight:bold">().</span><span style="color:#008080">getParent</span><span style="color:#000;font-weight:bold">());</span>
+    <span style="color:#000;font-weight:bold">}</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Output</p>
+<pre tabindex="0"><code>ClassLodarDemo's ClassLoader is sun.misc.Launcher$AppClassLoader@18b4aac2
+The Parent of ClassLodarDemo's ClassLoader is sun.misc.Launcher$ExtClassLoader@1b6d3586
+The GrandParent of ClassLodarDemo's ClassLoader is null
+</code></pre><p><code>AppClassLoader</code>的父类加载器为<code>ExtClassLoader</code>
+<code>ExtClassLoader</code>的父类加载器为null，<strong>null并不代表<code>ExtClassLoader</code>没有父类加载器，而是 <code>BootstrapClassLoader</code></strong> 。</p>
+<p>其实这个双亲翻译的容易让别人误解，我们一般理解的双亲都是父母，这里的双亲更多地表达的是“父母这一辈”的人而已，并不是说真的有一个 Mother ClassLoader 和一个 Father ClassLoader 。另外，类加载器之间的“父子”关系也不是通过继承来体现的，是由“优先级”来决定。官方API文档对这部分的描述如下:</p>
+<blockquote>
+<p>The Java platform uses a delegation model for loading classes. <strong>The basic idea is that every class loader has a &ldquo;parent&rdquo; class loader.</strong> When loading a class, a class loader first &ldquo;delegates&rdquo; the search for the class to its parent class loader before attempting to find the class itself.</p>
+</blockquote>
+<h3 id="双亲委派模型实现源码分析">双亲委派模型实现源码分析</h3>
+<p>双亲委派模型的实现代码非常简单，逻辑非常清晰，都集中在 <code>java.lang.ClassLoader</code> 的 <code>loadClass()</code> 中，相关代码如下所示。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000;font-weight:bold">private</span> <span style="color:#000;font-weight:bold">final</span> ClassLoader parent<span style="color:#000;font-weight:bold">;</span> 
+<span style="color:#000;font-weight:bold">protected</span> Class<span style="color:#000;font-weight:bold">&lt;?&gt;</span> loadClass<span style="color:#000;font-weight:bold">(</span>String name<span style="color:#000;font-weight:bold">,</span> <span style="color:#458;font-weight:bold">boolean</span> resolve<span style="color:#000;font-weight:bold">)</span>
+        <span style="color:#000;font-weight:bold">throws</span> ClassNotFoundException
+    <span style="color:#000;font-weight:bold">{</span>
+        <span style="color:#000;font-weight:bold">synchronized</span> <span style="color:#000;font-weight:bold">(</span>getClassLoadingLock<span style="color:#000;font-weight:bold">(</span>name<span style="color:#000;font-weight:bold">))</span> <span style="color:#000;font-weight:bold">{</span>
+            <span style="color:#998;font-style:italic">// 首先，检查请求的类是否已经被加载过
+</span><span style="color:#998;font-style:italic"></span>            Class<span style="color:#000;font-weight:bold">&lt;?&gt;</span> c <span style="color:#000;font-weight:bold">=</span> findLoadedClass<span style="color:#000;font-weight:bold">(</span>name<span style="color:#000;font-weight:bold">);</span>
+            <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">(</span>c <span style="color:#000;font-weight:bold">==</span> <span style="color:#000;font-weight:bold">null</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+                <span style="color:#458;font-weight:bold">long</span> t0 <span style="color:#000;font-weight:bold">=</span> System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">nanoTime</span><span style="color:#000;font-weight:bold">();</span>
+                <span style="color:#000;font-weight:bold">try</span> <span style="color:#000;font-weight:bold">{</span>
+                    <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">(</span>parent <span style="color:#000;font-weight:bold">!=</span> <span style="color:#000;font-weight:bold">null</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#998;font-style:italic">//父加载器不为空，调用父加载器loadClass()方法处理
+</span><span style="color:#998;font-style:italic"></span>                        c <span style="color:#000;font-weight:bold">=</span> parent<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">loadClass</span><span style="color:#000;font-weight:bold">(</span>name<span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">false</span><span style="color:#000;font-weight:bold">);</span>
+                    <span style="color:#000;font-weight:bold">}</span> <span style="color:#000;font-weight:bold">else</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#998;font-style:italic">//父加载器为空，使用启动类加载器 BootstrapClassLoader 加载
+</span><span style="color:#998;font-style:italic"></span>                        c <span style="color:#000;font-weight:bold">=</span> findBootstrapClassOrNull<span style="color:#000;font-weight:bold">(</span>name<span style="color:#000;font-weight:bold">);</span>
+                    <span style="color:#000;font-weight:bold">}</span>
+                <span style="color:#000;font-weight:bold">}</span> <span style="color:#000;font-weight:bold">catch</span> <span style="color:#000;font-weight:bold">(</span>ClassNotFoundException e<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+                   <span style="color:#998;font-style:italic">//抛出异常说明父类加载器无法完成加载请求
+</span><span style="color:#998;font-style:italic"></span>                <span style="color:#000;font-weight:bold">}</span>
+                
+                <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">(</span>c <span style="color:#000;font-weight:bold">==</span> <span style="color:#000;font-weight:bold">null</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+                    <span style="color:#458;font-weight:bold">long</span> t1 <span style="color:#000;font-weight:bold">=</span> System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">nanoTime</span><span style="color:#000;font-weight:bold">();</span>
+                    <span style="color:#998;font-style:italic">//自己尝试加载
+</span><span style="color:#998;font-style:italic"></span>                    c <span style="color:#000;font-weight:bold">=</span> findClass<span style="color:#000;font-weight:bold">(</span>name<span style="color:#000;font-weight:bold">);</span>
+
+                    <span style="color:#998;font-style:italic">// this is the defining class loader; record the stats
+</span><span style="color:#998;font-style:italic"></span>                    sun<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">misc</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">PerfCounter</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">getParentDelegationTime</span><span style="color:#000;font-weight:bold">().</span><span style="color:#008080">addTime</span><span style="color:#000;font-weight:bold">(</span>t1 <span style="color:#000;font-weight:bold">-</span> t0<span style="color:#000;font-weight:bold">);</span>
+                    sun<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">misc</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">PerfCounter</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">getFindClassTime</span><span style="color:#000;font-weight:bold">().</span><span style="color:#008080">addElapsedTimeFrom</span><span style="color:#000;font-weight:bold">(</span>t1<span style="color:#000;font-weight:bold">);</span>
+                    sun<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">misc</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">PerfCounter</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">getFindClasses</span><span style="color:#000;font-weight:bold">().</span><span style="color:#008080">increment</span><span style="color:#000;font-weight:bold">();</span>
+                <span style="color:#000;font-weight:bold">}</span>
+            <span style="color:#000;font-weight:bold">}</span>
+            <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">(</span>resolve<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+                resolveClass<span style="color:#000;font-weight:bold">(</span>c<span style="color:#000;font-weight:bold">);</span>
+            <span style="color:#000;font-weight:bold">}</span>
+            <span style="color:#000;font-weight:bold">return</span> c<span style="color:#000;font-weight:bold">;</span>
+        <span style="color:#000;font-weight:bold">}</span>
+    <span style="color:#000;font-weight:bold">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="双亲委派模型的好处">双亲委派模型的好处</h3>
+<p>双亲委派模型保证了Java程序的稳定运行，可以避免类的重复加载（JVM 区分不同类的方式不仅仅根据类名，相同的类文件被不同的类加载器加载产生的是两个不同的类），也保证了 Java 的核心 API 不被篡改。如果没有使用双亲委派模型，而是每个类加载器加载自己的话就会出现一些问题，比如我们编写一个称为 <code>java.lang.Object</code> 类的话，那么程序运行的时候，系统就会出现多个不同的 <code>Object</code> 类。</p>
+<h3 id="如果我们不想用双亲委派模型怎么办">如果我们不想用双亲委派模型怎么办？</h3>
+<p>为了避免双亲委托机制，我们可以自己定义一个类加载器，然后重写 <code>loadClass()</code> 即可。</p>
+<h2 id="自定义类加载器">自定义类加载器</h2>
+<p>除了 <code>BootstrapClassLoader</code> 其他类加载器均由 Java 实现且全部继承自<code>java.lang.ClassLoader</code>。如果我们要自定义自己的类加载器，很明显需要继承 <code>ClassLoader</code>。</p>
+<h2 id="推荐阅读">推荐阅读</h2>
+<ul>
+<li><a href="https://blog.csdn.net/xyang81/article/details/7292380">https://blog.csdn.net/xyang81/article/details/7292380</a></li>
+<li><a href="https://juejin.im/post/5c04892351882516e70dcc9b">https://juejin.im/post/5c04892351882516e70dcc9b</a></li>
+<li><a href="http://gityuan.com/2016/01/24/java-classloader/">http://gityuan.com/2016/01/24/java-classloader/</a></li>
+</ul>
+<h3 id="公众号">公众号</h3>
+<p>如果大家想要实时关注我更新的文章以及分享的干货的话，可以关注我的公众号。</p>
+<p><strong>《Java面试突击》:</strong> 由本文档衍生的专为面试而生的《Java面试突击》V2.0 PDF 版本<a href="#%E5%85%AC%E4%BC%97%E5%8F%B7">公众号</a>后台回复 <strong>&ldquo;Java面试突击&rdquo;</strong> 即可免费领取！</p>
+<p><strong>Java工程师必备学习资源:</strong> 一些Java工程师常用学习资源<a href="#%E5%85%AC%E4%BC%97%E5%8F%B7">公众号</a>后台回复关键字 <strong>“1”</strong> 即可免费无套路获取。</p>
+<p>
+        <a data-fancybox="gallery" href="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/167598cd2e17b8ec.png">
+            <img class="mx-auto" alt="我的公众号" src="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/167598cd2e17b8ec.png" />
+        </a>
+    </p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/class-loader.html">https://www.cxztt.com/class-loader.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/2019alipay-pinduoduo-toutiao.html">2019alipay-pinduoduo-toutiao</a></li>
+        
+        <li><a href="/5-faces-Ali,-finally-got-the-offer.html">5面阿里,终获offer</a></li>
+        
+        <li><a href="/AQS.html">AQS</a></li>
+        
+        <li><a href="/ArrayList.html">ArrayList</a></li>
+        
+        <li><a href="/ArrayList-Grow.html">ArrayList-Grow</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89'>他山之玉</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

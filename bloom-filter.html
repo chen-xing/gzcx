@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>bloom-filter | 主人翁</title>
+    <meta property="og:title" content="bloom-filter - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="bloom-filter">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/bloom-filter.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1什么是布隆过滤器">1.什么是布隆过滤器？</a></li>
+        <li><a href="#2布隆过滤器的原理介绍">2.布隆过滤器的原理介绍</a></li>
+        <li><a href="#3布隆过滤器使用场景">3.布隆过滤器使用场景</a></li>
+        <li><a href="#4通过-java-编程手动实现布隆过滤器">4.通过 Java 编程手动实现布隆过滤器</a></li>
+        <li><a href="#5利用google开源的-guava中自带的布隆过滤器">5.利用Google开源的 Guava中自带的布隆过滤器</a></li>
+        <li><a href="#6redis-中的布隆过滤器">6.Redis 中的布隆过滤器</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">bloom-filter</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89'>他山之玉</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <p>海量数据处理以及缓存穿透这两个场景让我认识了 布隆过滤器 ，我查阅了一些资料来了解它，但是很多现成资料并不满足我的需求，所以就决定自己总结一篇关于布隆过滤器的文章。希望通过这篇文章让更多人了解布隆过滤器，并且会实际去使用它！</p>
+<p>下面我们将分为几个方面来介绍布隆过滤器：</p>
+<ol>
+<li>什么是布隆过滤器？</li>
+<li>布隆过滤器的原理介绍。</li>
+<li>布隆过滤器使用场景。</li>
+<li>通过 Java 编程手动实现布隆过滤器。</li>
+<li>利用Google开源的Guava中自带的布隆过滤器。</li>
+<li>Redis 中的布隆过滤器。</li>
+</ol>
+<h3 id="1什么是布隆过滤器">1.什么是布隆过滤器？</h3>
+<p>首先，我们需要了解布隆过滤器的概念。</p>
+<p>布隆过滤器（Bloom Filter）是一个叫做 Bloom 的老哥于1970年提出的。我们可以把它看作由二进制向量（或者说位数组）和一系列随机映射函数（哈希函数）两部分组成的数据结构。相比于我们平时常用的的 List、Map 、Set 等数据结构，它占用空间更少并且效率更高，但是缺点是其返回的结果是概率性的，而不是非常准确的。理论情况下添加到集合中的元素越多，误报的可能性就越大。并且，存放在布隆过滤器的数据不容易删除。</p>
+<p>
+        <a data-fancybox="gallery" href="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-11/%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8-bit%e6%95%b0%e7%bb%84.png">
+            <img class="mx-auto" alt="布隆过滤器示意图" src="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-11/%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8-bit%e6%95%b0%e7%bb%84.png" />
+        </a>
+    </p>
+<p>位数组中的每个元素都只占用 1 bit ，并且每个元素只能是 0 或者 1。这样申请一个 100w 个元素的位数组只占用  1000000Bit / 8 = 125000 Byte = 125000/1024 kb ≈ 122kb 的空间。</p>
+<p>总结：<strong>一个名叫 Bloom 的人提出了一种来检索元素是否在给定大集合中的数据结构，这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且，理论情况下，添加到集合中的元素越多，误报的可能性就越大。</strong></p>
+<h3 id="2布隆过滤器的原理介绍">2.布隆过滤器的原理介绍</h3>
+<p><strong>当一个元素加入布隆过滤器中的时候，会进行如下操作：</strong></p>
+<ol>
+<li>使用布隆过滤器中的哈希函数对元素值进行计算，得到哈希值（有几个哈希函数得到几个哈希值）。</li>
+<li>根据得到的哈希值，在位数组中把对应下标的值置为 1。</li>
+</ol>
+<p><strong>当我们需要判断一个元素是否存在于布隆过滤器的时候，会进行如下操作：</strong></p>
+<ol>
+<li>对给定元素再次进行相同的哈希计算；</li>
+<li>得到值之后判断位数组中的每个元素是否都为 1，如果值都为 1，那么说明这个值在布隆过滤器中，如果存在一个值不为 1，说明该元素不在布隆过滤器中。</li>
+</ol>
+<p>举个简单的例子：</p>
+<p>
+        <a data-fancybox="gallery" href="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-11/%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8-hash%e8%bf%90%e7%ae%97.png">
+            <img class="mx-auto" alt="布隆过滤器hash计算" src="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-11/%e5%b8%83%e9%9a%86%e8%bf%87%e6%bb%a4%e5%99%a8-hash%e8%bf%90%e7%ae%97.png" />
+        </a>
+    </p>
+<p>如图所示，当字符串存储要加入到布隆过滤器中时，该字符串首先由多个哈希函数生成不同的哈希值，然后在对应的位数组的下表的元素设置为 1（当位数组初始化时 ，所有位置均为0）。当第二次存储相同字符串时，因为先前的对应位置已设置为1，所以很容易知道此值已经存在（去重非常方便）。</p>
+<p>如果我们需要判断某个字符串是否在布隆过滤器中时，只需要对给定字符串再次进行相同的哈希计算，得到值之后判断位数组中的每个元素是否都为 1，如果值都为 1，那么说明这个值在布隆过滤器中，如果存在一个值不为 1，说明该元素不在布隆过滤器中。</p>
+<p><strong>不同的字符串可能哈希出来的位置相同，这种情况我们可以适当增加位数组大小或者调整我们的哈希函数。</strong></p>
+<p>综上，我们可以得出：<strong>布隆过滤器说某个元素存在，小概率会误判。布隆过滤器说某个元素不在，那么这个元素一定不在。</strong></p>
+<h3 id="3布隆过滤器使用场景">3.布隆过滤器使用场景</h3>
+<ol>
+<li>判断给定数据是否存在：比如判断一个数字是否在于包含大量数字的数字集中（数字集很大，5亿以上！）、 防止缓存穿透（判断请求的数据是否有效避免直接绕过缓存请求数据库）等等、邮箱的垃圾邮件过滤、黑名单功能等等。</li>
+<li>去重：比如爬给定网址的时候对已经爬取过的 URL 去重。</li>
+</ol>
+<h3 id="4通过-java-编程手动实现布隆过滤器">4.通过 Java 编程手动实现布隆过滤器</h3>
+<p>我们上面已经说了布隆过滤器的原理，知道了布隆过滤器的原理之后就可以自己手动实现一个了。</p>
+<p>如果你想要手动实现一个的话，你需要：</p>
+<ol>
+<li>一个合适大小的位数组保存数据</li>
+<li>几个不同的哈希函数</li>
+<li>添加元素到位数组（布隆过滤器）的方法实现</li>
+<li>判断给定元素是否存在于位数组（布隆过滤器）的方法实现。</li>
+</ol>
+<p>下面给出一个我觉得写的还算不错的代码（参考网上已有代码改进得到，对于所有类型对象皆适用）：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">72
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">73
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">74
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">75
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">76
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000;font-weight:bold">import</span> <span style="color:#555">java.util.BitSet</span><span style="color:#000;font-weight:bold">;</span>
+
+<span style="color:#000;font-weight:bold">public</span> <span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">MyBloomFilter</span> <span style="color:#000;font-weight:bold">{</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 位数组的大小
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">private</span> <span style="color:#000;font-weight:bold">static</span> <span style="color:#000;font-weight:bold">final</span> <span style="color:#458;font-weight:bold">int</span> DEFAULT_SIZE <span style="color:#000;font-weight:bold">=</span> 2 <span style="color:#000;font-weight:bold">&lt;&lt;</span> 24<span style="color:#000;font-weight:bold">;</span>
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 通过这个数组可以创建 6 个不同的哈希函数
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">private</span> <span style="color:#000;font-weight:bold">static</span> <span style="color:#000;font-weight:bold">final</span> <span style="color:#458;font-weight:bold">int</span><span style="color:#000;font-weight:bold">[]</span> SEEDS <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> <span style="color:#458;font-weight:bold">int</span><span style="color:#000;font-weight:bold">[]{</span>3<span style="color:#000;font-weight:bold">,</span> 13<span style="color:#000;font-weight:bold">,</span> 46<span style="color:#000;font-weight:bold">,</span> 71<span style="color:#000;font-weight:bold">,</span> 91<span style="color:#000;font-weight:bold">,</span> 134<span style="color:#000;font-weight:bold">};</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 位数组。数组中的元素只能是 0 或者 1
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">private</span> BitSet bits <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> BitSet<span style="color:#000;font-weight:bold">(</span>DEFAULT_SIZE<span style="color:#000;font-weight:bold">);</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 存放包含 hash 函数的类的数组
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">private</span> SimpleHash<span style="color:#000;font-weight:bold">[]</span> func <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> SimpleHash<span style="color:#000;font-weight:bold">[</span>SEEDS<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">length</span><span style="color:#000;font-weight:bold">];</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 初始化多个包含 hash 函数的类的数组，每个类中的 hash 函数都不一样
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">public</span> <span style="color:#900;font-weight:bold">MyBloomFilter</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
+        <span style="color:#998;font-style:italic">// 初始化多个不同的 Hash 函数
+</span><span style="color:#998;font-style:italic"></span>        <span style="color:#000;font-weight:bold">for</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#458;font-weight:bold">int</span> i <span style="color:#000;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> i <span style="color:#000;font-weight:bold">&lt;</span> SEEDS<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">length</span><span style="color:#000;font-weight:bold">;</span> i<span style="color:#000;font-weight:bold">++)</span> <span style="color:#000;font-weight:bold">{</span>
+            func<span style="color:#000;font-weight:bold">[</span>i<span style="color:#000;font-weight:bold">]</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> SimpleHash<span style="color:#000;font-weight:bold">(</span>DEFAULT_SIZE<span style="color:#000;font-weight:bold">,</span> SEEDS<span style="color:#000;font-weight:bold">[</span>i<span style="color:#000;font-weight:bold">]);</span>
+        <span style="color:#000;font-weight:bold">}</span>
+    <span style="color:#000;font-weight:bold">}</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 添加元素到位数组
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">public</span> <span style="color:#458;font-weight:bold">void</span> <span style="color:#900;font-weight:bold">add</span><span style="color:#000;font-weight:bold">(</span>Object value<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+        <span style="color:#000;font-weight:bold">for</span> <span style="color:#000;font-weight:bold">(</span>SimpleHash f <span style="color:#000;font-weight:bold">:</span> func<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+            bits<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">set</span><span style="color:#000;font-weight:bold">(</span>f<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">hash</span><span style="color:#000;font-weight:bold">(</span>value<span style="color:#000;font-weight:bold">),</span> <span style="color:#000;font-weight:bold">true</span><span style="color:#000;font-weight:bold">);</span>
+        <span style="color:#000;font-weight:bold">}</span>
+    <span style="color:#000;font-weight:bold">}</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 判断指定元素是否存在于位数组
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">public</span> <span style="color:#458;font-weight:bold">boolean</span> <span style="color:#900;font-weight:bold">contains</span><span style="color:#000;font-weight:bold">(</span>Object value<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+        <span style="color:#458;font-weight:bold">boolean</span> ret <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">true</span><span style="color:#000;font-weight:bold">;</span>
+        <span style="color:#000;font-weight:bold">for</span> <span style="color:#000;font-weight:bold">(</span>SimpleHash f <span style="color:#000;font-weight:bold">:</span> func<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+            ret <span style="color:#000;font-weight:bold">=</span> ret <span style="color:#000;font-weight:bold">&amp;&amp;</span> bits<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">get</span><span style="color:#000;font-weight:bold">(</span>f<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">hash</span><span style="color:#000;font-weight:bold">(</span>value<span style="color:#000;font-weight:bold">));</span>
+        <span style="color:#000;font-weight:bold">}</span>
+        <span style="color:#000;font-weight:bold">return</span> ret<span style="color:#000;font-weight:bold">;</span>
+    <span style="color:#000;font-weight:bold">}</span>
+
+    <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">     * 静态内部类。用于 hash 操作！
+</span><span style="color:#998;font-style:italic">     */</span>
+    <span style="color:#000;font-weight:bold">public</span> <span style="color:#000;font-weight:bold">static</span> <span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">SimpleHash</span> <span style="color:#000;font-weight:bold">{</span>
+
+        <span style="color:#000;font-weight:bold">private</span> <span style="color:#458;font-weight:bold">int</span> cap<span style="color:#000;font-weight:bold">;</span>
+        <span style="color:#000;font-weight:bold">private</span> <span style="color:#458;font-weight:bold">int</span> seed<span style="color:#000;font-weight:bold">;</span>
+
+        <span style="color:#000;font-weight:bold">public</span> <span style="color:#900;font-weight:bold">SimpleHash</span><span style="color:#000;font-weight:bold">(</span><span style="color:#458;font-weight:bold">int</span> cap<span style="color:#000;font-weight:bold">,</span> <span style="color:#458;font-weight:bold">int</span> seed<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+            <span style="color:#000;font-weight:bold">this</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">cap</span> <span style="color:#000;font-weight:bold">=</span> cap<span style="color:#000;font-weight:bold">;</span>
+            <span style="color:#000;font-weight:bold">this</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">seed</span> <span style="color:#000;font-weight:bold">=</span> seed<span style="color:#000;font-weight:bold">;</span>
+        <span style="color:#000;font-weight:bold">}</span>
+
+        <span style="color:#998;font-style:italic">/**
+</span><span style="color:#998;font-style:italic">         * 计算 hash 值
+</span><span style="color:#998;font-style:italic">         */</span>
+        <span style="color:#000;font-weight:bold">public</span> <span style="color:#458;font-weight:bold">int</span> <span style="color:#900;font-weight:bold">hash</span><span style="color:#000;font-weight:bold">(</span>Object value<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+            <span style="color:#458;font-weight:bold">int</span> h<span style="color:#000;font-weight:bold">;</span>
+            <span style="color:#000;font-weight:bold">return</span> <span style="color:#000;font-weight:bold">(</span>value <span style="color:#000;font-weight:bold">==</span> <span style="color:#000;font-weight:bold">null</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">?</span> 0 <span style="color:#000;font-weight:bold">:</span> Math<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">abs</span><span style="color:#000;font-weight:bold">(</span>seed <span style="color:#000;font-weight:bold">*</span> <span style="color:#000;font-weight:bold">(</span>cap <span style="color:#000;font-weight:bold">-</span> 1<span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">&amp;</span> <span style="color:#000;font-weight:bold">((</span>h <span style="color:#000;font-weight:bold">=</span> value<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">hashCode</span><span style="color:#000;font-weight:bold">())</span> <span style="color:#000;font-weight:bold">^</span> <span style="color:#000;font-weight:bold">(</span>h <span style="color:#000;font-weight:bold">&gt;&gt;&gt;</span> 16<span style="color:#000;font-weight:bold">)));</span>
+        <span style="color:#000;font-weight:bold">}</span>
+
+    <span style="color:#000;font-weight:bold">}</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>测试：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        String value1 <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;https://javaguide.cn/&#34;</span><span style="color:#000;font-weight:bold">;</span>
+        String value2 <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;https://github.com/Snailclimb&#34;</span><span style="color:#000;font-weight:bold">;</span>
+        MyBloomFilter filter <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> MyBloomFilter<span style="color:#000;font-weight:bold">();</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value1<span style="color:#000;font-weight:bold">));</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value2<span style="color:#000;font-weight:bold">));</span>
+        filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">add</span><span style="color:#000;font-weight:bold">(</span>value1<span style="color:#000;font-weight:bold">);</span>
+        filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">add</span><span style="color:#000;font-weight:bold">(</span>value2<span style="color:#000;font-weight:bold">);</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value1<span style="color:#000;font-weight:bold">));</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value2<span style="color:#000;font-weight:bold">));</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Output:</p>
+<pre tabindex="0"><code>false
+false
+true
+true
+</code></pre><p>测试：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        Integer value1 <span style="color:#000;font-weight:bold">=</span> 13423<span style="color:#000;font-weight:bold">;</span>
+        Integer value2 <span style="color:#000;font-weight:bold">=</span> 22131<span style="color:#000;font-weight:bold">;</span>
+        MyBloomFilter filter <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">new</span> MyBloomFilter<span style="color:#000;font-weight:bold">();</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value1<span style="color:#000;font-weight:bold">));</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value2<span style="color:#000;font-weight:bold">));</span>
+        filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">add</span><span style="color:#000;font-weight:bold">(</span>value1<span style="color:#000;font-weight:bold">);</span>
+        filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">add</span><span style="color:#000;font-weight:bold">(</span>value2<span style="color:#000;font-weight:bold">);</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value1<span style="color:#000;font-weight:bold">));</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">contains</span><span style="color:#000;font-weight:bold">(</span>value2<span style="color:#000;font-weight:bold">));</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Output:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#000;font-weight:bold">false</span>
+<span style="color:#000;font-weight:bold">false</span>
+<span style="color:#000;font-weight:bold">true</span>
+<span style="color:#000;font-weight:bold">true</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="5利用google开源的-guava中自带的布隆过滤器">5.利用Google开源的 Guava中自带的布隆过滤器</h3>
+<p>自己实现的目的主要是为了让自己搞懂布隆过滤器的原理，Guava 中布隆过滤器的实现算是比较权威的，所以实际项目中我们不需要手动实现一个布隆过滤器。</p>
+<p>首先我们需要在项目中引入 Guava 的依赖：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#000;font-weight:bold">&lt;</span>dependency<span style="color:#000;font-weight:bold">&gt;</span>
+            <span style="color:#000;font-weight:bold">&lt;</span>groupId<span style="color:#000;font-weight:bold">&gt;</span>com<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">google</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">guava</span><span style="color:#000;font-weight:bold">&lt;/</span>groupId<span style="color:#000;font-weight:bold">&gt;</span>
+            <span style="color:#000;font-weight:bold">&lt;</span>artifactId<span style="color:#000;font-weight:bold">&gt;</span>guava<span style="color:#000;font-weight:bold">&lt;/</span>artifactId<span style="color:#000;font-weight:bold">&gt;</span>
+            <span style="color:#000;font-weight:bold">&lt;</span>version<span style="color:#000;font-weight:bold">&gt;</span>28<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">0</span><span style="color:#000;font-weight:bold">-</span>jre<span style="color:#000;font-weight:bold">&lt;/</span>version<span style="color:#000;font-weight:bold">&gt;</span>
+        <span style="color:#000;font-weight:bold">&lt;/</span>dependency<span style="color:#000;font-weight:bold">&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>实际使用如下：</p>
+<p>我们创建了一个最多存放 最多 1500个整数的布隆过滤器，并且我们可以容忍误判的概率为百分之（0.01）</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#998;font-style:italic">// 创建布隆过滤器对象
+</span><span style="color:#998;font-style:italic"></span>        BloomFilter<span style="color:#000;font-weight:bold">&lt;</span>Integer<span style="color:#000;font-weight:bold">&gt;</span> filter <span style="color:#000;font-weight:bold">=</span> BloomFilter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">create</span><span style="color:#000;font-weight:bold">(</span>
+                Funnels<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">integerFunnel</span><span style="color:#000;font-weight:bold">(),</span>
+                1500<span style="color:#000;font-weight:bold">,</span>
+                0<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">01</span><span style="color:#000;font-weight:bold">);</span>
+        <span style="color:#998;font-style:italic">// 判断指定元素是否存在
+</span><span style="color:#998;font-style:italic"></span>        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">mightContain</span><span style="color:#000;font-weight:bold">(</span>1<span style="color:#000;font-weight:bold">));</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">mightContain</span><span style="color:#000;font-weight:bold">(</span>2<span style="color:#000;font-weight:bold">));</span>
+        <span style="color:#998;font-style:italic">// 将元素添加进布隆过滤器
+</span><span style="color:#998;font-style:italic"></span>        filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">put</span><span style="color:#000;font-weight:bold">(</span>1<span style="color:#000;font-weight:bold">);</span>
+        filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">put</span><span style="color:#000;font-weight:bold">(</span>2<span style="color:#000;font-weight:bold">);</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">mightContain</span><span style="color:#000;font-weight:bold">(</span>1<span style="color:#000;font-weight:bold">));</span>
+        System<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">out</span><span style="color:#000;font-weight:bold">.</span><span style="color:#008080">println</span><span style="color:#000;font-weight:bold">(</span>filter<span style="color:#000;font-weight:bold">.</span><span style="color:#008080">mightContain</span><span style="color:#000;font-weight:bold">(</span>2<span style="color:#000;font-weight:bold">));</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>在我们的示例中，当<code>mightContain（）</code> 方法返回<em>true</em>时，我们可以99％确定该元素在过滤器中，当过滤器返回<em>false</em>时，我们可以100％确定该元素不存在于过滤器中。</p>
+<p><strong>Guava 提供的布隆过滤器的实现还是很不错的（想要详细了解的可以看一下它的源码实现），但是它有一个重大的缺陷就是只能单机使用（另外，容量扩展也不容易），而现在互联网一般都是分布式的场景。为了解决这个问题，我们就需要用到 Redis 中的布隆过滤器了。</strong></p>
+<h3 id="6redis-中的布隆过滤器">6.Redis 中的布隆过滤器</h3>
+<h4 id="61介绍">6.1介绍</h4>
+<p>Redis v4.0 之后有了 Module（模块/插件） 功能，Redis Modules 让 Redis 可以使用外部模块扩展其功能 。布隆过滤器就是其中的 Module。详情可以查看 Redis 官方对 Redis Modules 的介绍 ：https://redis.io/modules。</p>
+<p>另外，官网推荐了一个 RedisBloom  作为 Redis 布隆过滤器的 Module,地址：https://github.com/RedisBloom/RedisBloom。其他还有：</p>
+<ul>
+<li>redis-lua-scaling-bloom-filter （lua 脚本实现）：https://github.com/erikdubbelboer/redis-lua-scaling-bloom-filter</li>
+<li>pyreBloom（Python中的快速Redis 布隆过滤器） ：https://github.com/seomoz/pyreBloom</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>RedisBloom 提供了多种语言的客户端支持，包括：Python、Java、JavaScript 和 PHP。</p>
+<h4 id="62使用docker安装">6.2使用Docker安装</h4>
+<p>如果我们需要体验 Redis 中的布隆过滤器非常简单，通过 Docker  就可以了！我们直接在 Google 搜索<strong>docker redis bloomfilter</strong> 然后在排除广告的第一条搜素结果就找到了我们想要的答案（这是我平常解决问题的一种方式，分享一下），具体地址：https://hub.docker.com/r/redislabs/rebloom/ （介绍的很详细 ）。</p>
+<p><strong>具体操作如下：</strong></p>
+<pre tabindex="0"><code>➜  ~ docker run -p 6379:6379 --name redis-redisbloom redislabs/rebloom:latest
+➜  ~ docker exec -it redis-redisbloom bash
+root@21396d02c252:/data# redis-cli
+127.0.0.1:6379&gt; 
+</code></pre><h4 id="63常用命令一览">6.3常用命令一览</h4>
+<blockquote>
+<p>注意：   key:布隆过滤器的名称，item : 添加的元素。</p>
+</blockquote>
+<ol>
+<li><strong><code>BF.ADD </code></strong>：将元素添加到布隆过滤器中，如果该过滤器尚不存在，则创建该过滤器。格式：<code>BF.ADD {key} {item}</code>。</li>
+<li><strong><code>BF.MADD </code></strong> : 将一个或多个元素添加到“布隆过滤器”中，并创建一个尚不存在的过滤器。该命令的操作方式<code>BF.ADD</code>与之相同，只不过它允许多个输入并返回多个值。格式：<code>BF.MADD {key} {item} [item ...]</code> 。</li>
+<li>**<code>BF.EXISTS</code> ** : 确定元素是否在布隆过滤器中存在。格式：<code>BF.EXISTS {key} {item}</code>。</li>
+<li><strong><code>BF.MEXISTS</code></strong> ： 确定一个或者多个元素是否在布隆过滤器中存在格式：<code>BF.MEXISTS {key} {item} [item ...]</code>。</li>
+</ol>
+<p>另外，<code>BF.RESERVE</code> 命令需要单独介绍一下：</p>
+<p>这个命令的格式如下：</p>
+<p><code>BF.RESERVE {key} {error_rate} {capacity} [EXPANSION expansion] </code>。</p>
+<p>下面简单介绍一下每个参数的具体含义：</p>
+<ol>
+<li>key：布隆过滤器的名称</li>
+<li>error_rate :误报的期望概率。这应该是介于0到1之间的十进制值。例如，对于期望的误报率0.1％（1000中为1），error_rate应该设置为0.001。该数字越接近零，则每个项目的内存消耗越大，并且每个操作的CPU使用率越高。</li>
+<li>capacity:  过滤器的容量。当实际存储的元素个数超过这个值之后，性能将开始下降。实际的降级将取决于超出限制的程度。随着过滤器元素数量呈指数增长，性能将线性下降。</li>
+</ol>
+<p>可选参数：</p>
+<ul>
+<li>expansion：如果创建了一个新的子过滤器，则其大小将是当前过滤器的大小乘以<code>expansion</code>。默认扩展值为2。这意味着每个后续子过滤器将是前一个子过滤器的两倍。</li>
+</ul>
+<h4 id="64实际使用">6.4实际使用</h4>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">127.0.0.1:6379&gt; BF.ADD myFilter java
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">1</span>
+127.0.0.1:6379&gt; BF.ADD myFilter javaguide
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">1</span>
+127.0.0.1:6379&gt; BF.EXISTS myFilter java
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">1</span>
+127.0.0.1:6379&gt; BF.EXISTS myFilter javaguide
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">1</span>
+127.0.0.1:6379&gt; BF.EXISTS myFilter github
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">0</span>
+</code></pre></td></tr></table>
+</div>
+</div>
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/bloom-filter.html">https://www.cxztt.com/bloom-filter.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/2019alipay-pinduoduo-toutiao.html">2019alipay-pinduoduo-toutiao</a></li>
+        
+        <li><a href="/5-faces-Ali,-finally-got-the-offer.html">5面阿里,终获offer</a></li>
+        
+        <li><a href="/AQS.html">AQS</a></li>
+        
+        <li><a href="/ArrayList.html">ArrayList</a></li>
+        
+        <li><a href="/ArrayList-Grow.html">ArrayList-Grow</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89'>他山之玉</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

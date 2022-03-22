@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>浅析Java程序的破解与防护 | 主人翁</title>
+    <meta property="og:title" content="浅析Java程序的破解与防护 - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="浅析Java程序的破解与防护">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/1878.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1破解的时机">1、破解的时机</a></li>
+    <li><a href="#2源码阶段">2、源码阶段</a></li>
+    <li><a href="#3静态修改">3、静态修改</a>
+      <ul>
+        <li><a href="#3116进制修改class">3.1、16进制修改class</a></li>
+        <li><a href="#32javassist修改class">3.2、javassist修改class</a></li>
+        <li><a href="#33javaagent的方式">3.3、javaagent的方式</a></li>
+      </ul>
+    </li>
+    <li><a href="#4java软件保护">4、java软件保护</a>
+      <ul>
+        <li><a href="#41-将java包装成exe">4.1 将java包装成exe</a></li>
+        <li><a href="#42-java混淆器">　　 4.2 java混淆器</a></li>
+        <li><a href="#43-隔离java程序到服务端">　 4.3 隔离java程序到服务端</a></li>
+        <li><a href="#44-java加密保护">　　4.4 java加密保护</a></li>
+        <li><a href="#45-提前编译技术aot">　　 4.5 提前编译技术(AOT)</a></li>
+        <li><a href="#46-使用jni方式保护">　　 4.6 使用jni方式保护</a></li>
+        <li><a href="#47-不脱离jre的综合方式保护">　 4.7 不脱离JRE的综合方式保护</a></li>
+        <li><a href="#48-用加密锁硬件保护">　　 4.8 用加密锁硬件保护</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">浅析Java程序的破解与防护</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E5%AE%89%E5%85%A8'>安全</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <h2 id="1破解的时机">1、破解的时机</h2>
+<p>
+        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20211101200117229.png">
+            <img class="mx-auto" alt="java程序的执行过程" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20211101200117229.png" />
+        </a>
+    </p>
+<ul>
+<li>源码阶段（可获取到源码）</li>
+<li>静态修改class文件</li>
+<li>class加载到内存</li>
+</ul>
+<h2 id="2源码阶段">2、源码阶段</h2>
+<ul>
+<li>开源项目，可以直接获取源码</li>
+<li>简单的程序，依赖比较少，且未加密混淆。可以通过反编译工具直接获取source。读懂逻辑后直接修改。重新打包。</li>
+</ul>
+<blockquote>
+<p>这里有个问题是对于加密混淆或依赖比较多的程序，一来是反编译后逻辑晦涩难懂，而且重新打包成class的难度比较大。</p>
+</blockquote>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20211102210739.png-94rg002">
+            <img class="mx-auto" alt="image-20210930135500206" src="https://oss.94rg.com/figure_bed/20211102210739.png-94rg002" />
+        </a>
+    </p>
+<h2 id="3静态修改">3、静态修改</h2>
+<p>前提是读懂了程序的大致逻辑，知道自己关注的逻辑所以的class以及处理方法。然后借助三方工具。修改单个class.完毕后将修改后的class 借助压缩软件重新打包到jar中。</p>
+<h3 id="3116进制修改class">3.1、16进制修改class</h3>
+<ul>
+<li>获取关键逻辑所在的class</li>
+<li>借助三方工具 jd-gui和jclasslib来分析关键代码。</li>
+<li>如果控制的关键逻辑是某些ConstantPool变量决定的，那么可以借助jclasslib的工具类获取到这个变量并重新赋值就可以了；如果是内部逻辑的话，需要分析关键代码对应的jvm代码，然后转化为对应的16进制去操作。可以使用notepad++插件完成</li>
+</ul>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20211009163926.png-94rg002">
+            <img class="mx-auto" alt="反编译后代码" src="https://oss.94rg.com/figure_bed/20211009163926.png-94rg002" />
+        </a>
+    </p>
+<p>所以关键是修改这个过期的年份，对应的method是getYear</p>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20211009164110.png-94rg002">
+            <img class="mx-auto" alt="字节码查看" src="https://oss.94rg.com/figure_bed/20211009164110.png-94rg002" />
+        </a>
+    </p>
+<p>工具的缘故，截图中的常量显示不全</p>
+<pre tabindex="0"><code>0 sipush 2016
+3 ireturn
+
+sipush = 17 (0x11)
+2016   = 2016 (0x07E0)
+ireturn = 172 (0xac)
+
+连起来就是
+1107E0AC
+
+目标是将2016进行修改未2099
+2099  = 2099 (0x0833)
+
+所以就是将1107E0AC 替换为 110833AC
+</code></pre><p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20211009170239.png-94rg002">
+            <img class="mx-auto" alt="notepad&#43;&#43;修改" src="https://oss.94rg.com/figure_bed/20211009170239.png-94rg002" />
+        </a>
+    </p>
+<p>重新打开class进行查看</p>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20211009170326.png-94rg002">
+            <img class="mx-auto" alt="修改后的效果" src="https://oss.94rg.com/figure_bed/20211009170326.png-94rg002" />
+        </a>
+    </p>
+<p>启动运行看下效果</p>
+<p>
+        <a data-fancybox="gallery" href="https://oss.94rg.com/figure_bed/20211009170554.png-94rg002">
+            <img class="mx-auto" alt="成功打开了" src="https://oss.94rg.com/figure_bed/20211009170554.png-94rg002" />
+        </a>
+    </p>
+<p>jclasslib修改的实例，需要自行引用jclasslib的jar</p>
+<pre tabindex="0"><code>public static void main(String[] args) throws IOException, InvalidByteCodeException {
+        String filePath = &quot;\\CensumStartupChecks.class&quot;;
+        FileInputStream fis = new FileInputStream(filePath);
+
+        DataInput di = new DataInputStream(fis);
+        ClassFile cf = new ClassFile();
+        cf.read(di);
+        CPInfo[] infos = cf.getConstantPool();
+
+        int count = infos.length;
+        for (int i = 0; i &lt; count; i++) {
+            if (infos[i] != null) {
+                System.out.print(i);
+                System.out.print(&quot; = &quot;);
+                System.out.print(infos[i].getVerbose());
+                System.out.print(&quot; = &quot;);
+                System.out.println(infos[i].getTagVerbose());
+                //这个改成实际常量池的序号
+                if (i == 59) {
+                    ConstantUtf8Info uInfo = (ConstantUtf8Info) infos[i];
+                    uInfo.setBytes(&quot;2099&quot;.getBytes());
+                    infos[i] = uInfo;
+                }
+            }
+        }
+        cf.setConstantPool(infos);
+        fis.close();
+        File f = new File(filePath);
+        ClassFileWriter.writeToFile(f, cf);
+    }
+</code></pre><h3 id="32javassist修改class">3.2、javassist修改class</h3>
+<h4 id="321pom引入">3.2.1、pom引入</h4>
+<pre tabindex="0"><code>&lt;dependency&gt;
+	&lt;groupId&gt;org.javassist&lt;/groupId&gt;
+	&lt;artifactId&gt;javassist&lt;/artifactId&gt;
+	&lt;version&gt;3.28.0-GA&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre><h4 id="322调整class的代码">3.2.2、调整class的代码</h4>
+<pre tabindex="0"><code> public static void main(String[] args) throws NotFoundException, CannotCompileException, IOException {
+   ClassPool classPool=ClassPool.getDefault();
+	classPool.insertClassPath(&quot;D:\\censum-full.jar&quot;);
+	CtClass ctClass=classPool.get(&quot;com.jclarity.censum.CensumStartupChecks&quot;);
+	CtMethod ctMethod=ctClass.getDeclaredMethod(&quot;getYear&quot;);
+	ctMethod.setBody(&quot;return 2099;&quot;);
+	ctClass.writeFile(&quot;D:\\libs&quot;);
+}
+</code></pre><h3 id="33javaagent的方式">3.3、javaagent的方式</h3>
+<h4 id="331引入pom">3.3.1、引入pom</h4>
+<pre tabindex="0"><code>&lt;dependencies&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.ow2.asm&lt;/groupId&gt;
+		&lt;artifactId&gt;asm&lt;/artifactId&gt;
+		&lt;version&gt;7.1&lt;/version&gt;
+	&lt;/dependency&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.ow2.asm&lt;/groupId&gt;
+		&lt;artifactId&gt;asm-commons&lt;/artifactId&gt;
+		&lt;version&gt;7.1&lt;/version&gt;
+	&lt;/dependency&gt;
+&lt;/dependencies&gt;
+&lt;build&gt;
+	&lt;finalName&gt;censum-crack&lt;/finalName&gt;
+	&lt;plugins&gt;
+
+		&lt;plugin&gt;
+			&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+			&lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
+			&lt;configuration&gt;
+				&lt;archive&gt;
+					&lt;manifestEntries&gt;
+						&lt;Agent-Class&gt;tech.chenxing.agent.AgentMain&lt;/Agent-Class&gt;
+						&lt;Premain-Class&gt;tech.chenxing.agent.AgentMain&lt;/Premain-Class&gt;
+						&lt;Can-Redefine-Classes&gt;true&lt;/Can-Redefine-Classes&gt;
+						&lt;Can-Retransform-Classes&gt;true&lt;/Can-Retransform-Classes&gt;
+					&lt;/manifestEntries&gt;
+				&lt;/archive&gt;
+			&lt;/configuration&gt;
+		&lt;/plugin&gt;
+		&lt;plugin&gt;
+			&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+			&lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
+			&lt;version&gt;3.2.1&lt;/version&gt;
+			&lt;executions&gt;
+				&lt;execution&gt;
+					&lt;phase&gt;package&lt;/phase&gt;
+
+					&lt;goals&gt;
+						&lt;goal&gt;shade&lt;/goal&gt;
+					&lt;/goals&gt;
+
+					&lt;configuration&gt;
+						&lt;relocations&gt;
+							&lt;relocation&gt;
+								&lt;pattern&gt;org.ow2.asm&lt;/pattern&gt;
+								&lt;shadedPattern&gt;me.ya.agent.hidden.org.ow2.asm&lt;/shadedPattern&gt;
+							&lt;/relocation&gt;
+							&lt;relocation&gt;
+								&lt;pattern&gt;org.objectweb.asm&lt;/pattern&gt;
+								&lt;shadedPattern&gt;me.ya.agent.hidden.org.objectweb.asm&lt;/shadedPattern&gt;
+							&lt;/relocation&gt;
+						&lt;/relocations&gt;
+
+					&lt;/configuration&gt;
+				&lt;/execution&gt;
+			&lt;/executions&gt;
+		&lt;/plugin&gt;
+		&lt;plugin&gt;
+			&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+			&lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+			&lt;configuration&gt;
+				&lt;source&gt;8&lt;/source&gt;
+				&lt;target&gt;8&lt;/target&gt;
+			&lt;/configuration&gt;
+		&lt;/plugin&gt;
+	&lt;/plugins&gt;
+&lt;/build&gt;
+</code></pre><h4 id="332编写javaagent">3.3.2、编写javaagent</h4>
+<pre tabindex="0"><code>public class AgentMain {
+
+    /**
+     * Premain
+     *
+     * @param agentArgs
+     * @param inst
+     */
+    public static void premain(String agentArgs, Instrumentation inst) {
+        System.out.println(&quot;enter agent&quot;);
+        inst.addTransformer(new MyClassFileTransformer(), true);
+    }
+
+    /** AdviceAdapter */
+    public static class MyMethodVisitor extends AdviceAdapter {
+
+        MyMethodVisitor(MethodVisitor mv, int access, String name, String desc) {
+            super(Opcodes.ASM7, mv, access, name, desc);
+        }
+
+        @Override
+        protected void onMethodEnter() {
+            System.out.println(&quot;命中字段&quot;);
+            mv.visitFieldInsn(
+                    GETSTATIC,
+                    &quot;com/jclarity/censum/CanLoadState&quot;,
+                    &quot;SUCCESS&quot;,
+                    &quot;Lcom/jclarity/censum/CanLoadState;&quot;);
+            mv.visitInsn(ARETURN);
+        }
+    }
+
+    /** ClassVisitor */
+    public static class MyClassVisitor extends ClassVisitor {
+
+        MyClassVisitor(ClassVisitor classVisitor) {
+            super(Opcodes.ASM7, classVisitor);
+        }
+
+        @Override
+        public MethodVisitor visitMethod(
+                int access, String name, String desc, String signature, String[] exceptions) {
+            MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+            // 只注入 canLoadCensum 方法
+            String canLoadMethodName = GlobalConstant.methodName;
+            if (name.equals(canLoadMethodName)) {
+                System.out.println(&quot;命中方法&quot;);
+                return new MyMethodVisitor(mv, access, name, desc);
+            }
+            return mv;
+        }
+    }
+
+    /** Transformer */
+    public static class MyClassFileTransformer implements ClassFileTransformer {
+
+        @Override
+        public byte[] transform(
+                ClassLoader loader,
+                String className,
+                Class&lt;?&gt; classBeingRedefined,
+                ProtectionDomain protectionDomain,
+                byte[] classBytes)
+                throws IllegalClassFormatException {
+            String canLoadClassName = GlobalConstant.className;
+            if (className.equals(canLoadClassName)) {
+                System.out.println(&quot;命中class&quot;);
+                ClassReader cr = new ClassReader(classBytes);
+                ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
+                ClassVisitor cv = new MyClassVisitor(cw);
+                cr.accept(cv, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+                return cw.toByteArray();
+            }
+            return classBytes;
+        }
+    }
+}
+</code></pre><h4 id="333执行jar">3.3.3、执行jar</h4>
+<pre tabindex="0"><code>java -javaagent:agent1.jar -javaagent:agent2.jar -jar MyProgram.jar
+</code></pre><h2 id="4java软件保护">4、java软件保护</h2>
+<p><a href="https://cloud.tencent.com/developer/article/1543438">https://cloud.tencent.com/developer/article/1543438</a></p>
+<h3 id="41-将java包装成exe">4.1 将java包装成exe</h3>
+<p>　　特点：将jar包装成可执行文件，便于使用，但对java程序没有任何保护。</p>
+<p>　　不要以为生成了exe就和普通可执行文件效果一样了。这些包装成exe的程序运行时都会将jar文件释放到临时目录，很容易获取。</p>
+<p>　　常用的工具有exe4j、jsmooth、NativeJ等等。jsmooth生成的exe运行时临时目录在exe所在目录中或是用户临时目录 中;exe4j生成的exe运行时临时目录在用户临时目录中;NativeJ生成的exe直接用winrar打开，然后用zip格式修复成一个jar文 件，就得到了原文件。如果只是为了使用和发布方便，不需要保护java代码，使用这些工具是很好的选择。</p>
+<h3 id="42-java混淆器">　　 4.2 java混淆器</h3>
+<p>　　特点：使用一种或多种处理方式将class文件、java源代码进行混淆处理后生成新的class，使混淆后的代码不易被反编译，而反编译后的代码难以阅 读和理解。</p>
+<p>　　这类混淆器工具很多，而且也很有成效。</p>
+<p>　　缺点：虽然混淆的代码反编译后不易读懂，但对于有经验的人或是多花些时间，还是能找到或计算出你代码中隐藏的敏感内容，而且在很多应用中不是全部代码都能 混淆的，往往一些关键的库、类名、方法名、变量名等因使用要求的限制反而还不能混淆。</p>
+<h3 id="43-隔离java程序到服务端">　 4.3 隔离java程序到服务端</h3>
+<p>　　特点：把java程序放到服务端，让用户不能访问到class文件和相关配套文件，客户端只通过接口访问。</p>
+<p>　　这种方式在客户/服务模式的应用中能较好地保护java代码。</p>
+<p>　　缺点是：必须是客户/服务模式，这种特点限制了此种方式的使用范围;客户端因为逻辑的暴露始终是较为薄弱的环节，所以访问接口时一般都需要安全性认证。</p>
+<h3 id="44-java加密保护">　　4.4 java加密保护</h3>
+<p>　　特点：自定义ClassLoader，将class文件和相关文件加密，运行时由此ClassLoader解密相关文件并装载类，要起到保护作用必须自定 义本地代码执行器将自定义ClassLoader和加密解密的相关类和配套文件也保护起来。</p>
+<p>　　此种方式能很有效地保护java代码。</p>
+<p>　　缺点：可以通过替换JRE包中与类装载相关的java类或虚拟机动态库截获java字节码。</p>
+<p>　　jar2exe属于这类工具。</p>
+<h3 id="45-提前编译技术aot">　　 4.5 提前编译技术(AOT)</h3>
+<p>　　特点：将java代码静态编译成本地机器码，脱离通用JRE。</p>
+<p>　　此种方式能够非常有效地保护java代码，且程序启动比通用JVM快一点。</p>
+<p>　　具有代表性的是GNU的gcj，可以做到对java代码完全提前编译，但gcj存在诸多局限性，如：对JRE 5不能完整支持、不支持JRE 6及以后的版本。</p>
+<p>　　由于java平台的复杂性，做到能及时支持最新java版本和JRE的完全提前编译是非常困难的，所以这类工具往往采取灵活方式，该用即时编译的地方还是 要用，成为提前编译和即时编译的混合体。</p>
+<p>　　缺点：由于与通用JRE的差异和java运用中的复杂性，并非java程序中的所有jar都能得到完全的保护;只能使用此种工具提供的一个运行环境，如果 工具更新滞后或你需要特定版本的JRE，有可能得不到此种工具的支持。</p>
+<p>　　Excelsior JET属于这类工具。</p>
+<h3 id="46-使用jni方式保护">　　 4.6 使用jni方式保护</h3>
+<p>　　特点：将敏感的方法和数据通过jni方式处理。</p>
+<p>　　此种方式和“隔离java程序到服务端”有些类似，可以看作把需要保护的代码和数据“隔离”到动态库中，不同的是可以在单机程序中运用。</p>
+<p>　　缺点和上述“隔离java程序到服务端”类似。</p>
+<h3 id="47-不脱离jre的综合方式保护">　 4.7 不脱离JRE的综合方式保护</h3>
+<p>　　特点：非提前编译，不脱离JRE，采用多种软保护方式，从多方面防止java程序被窃取。</p>
+<p>　　此种方式由于采取了多种保护措施，比如自定义执行器和装载器、加密、JNI、安全性检测、生成可执行文件等等，使保护力度大大增强，同样能够非常有效地保 护java代码。</p>
+<p>　　缺点：由于jar文件存在方式的改变和java运用中的复杂性，并非java程序中的所有jar都能得到完全的保护;很有可能并不支持所有的JRE版本。</p>
+<p>　　JXMaker属于此类工具。</p>
+<h3 id="48-用加密锁硬件保护">　　 4.8 用加密锁硬件保护</h3>
+<p>　　特点：使用与硬件相关的专用程序将java虚拟机启动程序加壳，将虚拟机配套文件和java程序加密，启动的是加壳程序，由加壳程序建立一个与硬件相关的 受保护的运行环境，为了加强安全性可以和加密锁内植入的程序互动。</p>
+<p>　　此种方式与以上“不脱离JRE的综合方式保护”相似，只是使用了专用硬件设备，也能很好地保护java代码。</p>
+<p>　　缺点：有人认为加密锁用户使用上不太方便，且每个安装需要附带一个。</p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/1878.html">https://www.cxztt.com/1878.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/bitwarden-self-built-server.html">bitwarden自建服务器</a></li>
+        
+        <li><a href="/2019alipay-pinduoduo-toutiao.html">2019alipay-pinduoduo-toutiao</a></li>
+        
+        <li><a href="/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html">2020程序员节总结-如何实现自我价值</a></li>
+        
+        <li><a href="/5-faces-Ali,-finally-got-the-offer.html">5面阿里,终获offer</a></li>
+        
+        <li><a href="/AQS.html">AQS</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/%E5%AE%89%E5%85%A8'>安全</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

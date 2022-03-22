@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>git on 主人翁</title>
+    <link>https://www.cxztt.com/tags/git/</link>
+    <description>Recent content in git on 主人翁</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Tue, 22 Feb 2022 21:55:00 +0800</lastBuildDate><atom:link href="https://www.cxztt.com/tags/git/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>git提交代码到github提示失败</title>
+      <link>https://www.cxztt.com/github-submit-fail.html</link>
+      <pubDate>Tue, 22 Feb 2022 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/github-submit-fail.html</guid>
+      <description>1、报错信息 Connection reset by 20.205.243.166 port 22 fatal: Could not read from remote repository. Please make sure you have the correct access rights and the repository exists. 2、处理方案 尝试将host文件中添加 192.30.255.112 github.com git 185.31.16.184 github.global.ssl.fastly.net</description>
+    </item>
+    
+    <item>
+      <title>github action 部署hugo</title>
+      <link>https://www.cxztt.com/github-action-hugo.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/github-action-hugo.html</guid>
+      <description>1、github action脚本 经过验证的github action 部署hugo脚本 name: GitHubPages on: push: branches: - master # Set a branch to deploy jobs: deploy: runs-on: ubuntu-latest steps: - uses: actions/checkout@v2 - name: Setup Hugo uses: peaceiris/actions-hugo@v2 with: # hugo-version: &#39;${{ steps.hugo-version.outputs.HUGO_VERSION }}&#39; hugo-version: &#39;0.92.2&#39; extended: true - name: Build run: hugo --minify -</description>
+    </item>
+    
+    <item>
+      <title>git常用的操作</title>
+      <link>https://www.cxztt.com/common-git-operate.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/common-git-operate.html</guid>
+      <description>git常用的操作语法介绍 1、回归合并代码的请求 git checkout . &amp;amp;&amp;amp; git clean -xdf 2、强制删除本地的代码分支 git branch -D branchName 3、检出代码到本地 git checkout -b 本地分支名 远程分支名</description>
+    </item>
+    
+    <item>
+      <title>git本地未提交被丢弃的文件如何找回</title>
+      <link>https://www.cxztt.com/git-base.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/git-base.html</guid>
+      <description>1、问题背景 写了一天代码，下班的时候随手关闭sourceTree,然后在关闭之前顺手执行了丢弃操作。（以为是测试项目的代码，无需保留）。下一秒猛地意识到是今天的</description>
+    </item>
+    
+    <item>
+      <title>图解开源协议</title>
+      <link>https://www.cxztt.com/git-sense.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/git-sense.html</guid>
+      <description>1、一图胜万言 2、总结 使用者最喜欢的协议是 MIT 开源者最喜欢的协议是 GPL 开源不易，为各位开源的前辈们点赞</description>
+    </item>
+    
+  </channel>
+</rss>

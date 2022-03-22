@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on 主人翁</title>
+    <link>https://www.cxztt.com/tags/</link>
+    <description>Recent content in Tags on 主人翁</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 28 Feb 2022 11:55:00 +0800</lastBuildDate><atom:link href="https://www.cxztt.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>blog</title>
+      <link>https://www.cxztt.com/tags/blog/</link>
+      <pubDate>Mon, 28 Feb 2022 11:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/blog/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>git</title>
+      <link>https://www.cxztt.com/tags/git/</link>
+      <pubDate>Tue, 22 Feb 2022 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/git/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>linux</title>
+      <link>https://www.cxztt.com/tags/linux/</link>
+      <pubDate>Fri, 18 Feb 2022 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>freemarker</title>
+      <link>https://www.cxztt.com/tags/freemarker/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/freemarker/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>idea</title>
+      <link>https://www.cxztt.com/tags/idea/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/idea/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>java</title>
+      <link>https://www.cxztt.com/tags/java/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/java/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>markdown</title>
+      <link>https://www.cxztt.com/tags/markdown/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/markdown/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>postman</title>
+      <link>https://www.cxztt.com/tags/postman/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/postman/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>sports</title>
+      <link>https://www.cxztt.com/tags/sports/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/sports/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>zuul</title>
+      <link>https://www.cxztt.com/tags/zuul/</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/tags/zuul/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

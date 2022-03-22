@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>百度统计代码如何模拟 | 主人翁</title>
+    <meta property="og:title" content="百度统计代码如何模拟 - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="百度统计代码如何模拟">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/How-to-simulate-Baidu-statistics-code.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2统计代码">2、统计代码</a></li>
+        <li><a href="#3hmjs做了些什么">3、hm.js做了些什么</a></li>
+        <li><a href="#4发送请求">4、发送请求</a></li>
+        <li><a href="#5模拟访问">5、模拟访问</a></li>
+        <li><a href="#6百度统计的4个请求">6、百度统计的4个请求</a></li>
+        <li><a href="#7代码实现">7、代码实现</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">百度统计代码如何模拟</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/seo'>seo</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <h3 id="1前言">1、前言</h3>
+<p>国内大多数站长可能都在用百度统计。统计的使用方法也很简单，只要在需要统计的页面底部加上统计代码即可。然后打开百度统计的后台，就能看到访客信息，包括入口页面，停留时间，跳出率等等，很是方便。</p>
+<p>
+        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117225633001.png">
+            <img class="mx-auto" alt="" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117225633001.png" />
+        </a>
+    </p>
+<p>使用当然是会用，但是随着不断成长，逐渐开始考虑一些事情，比如百度统计只是一行JS怎么就实现统计了呢？如果不打开网页，是不是能利用脚本模拟这一过程呢？</p>
+<h3 id="2统计代码">2、统计代码</h3>
+<p>首先，百度统计要求网站必须嵌入一段JS代码，大概是长这个样子的。</p>
+<pre tabindex="0"><code>var _hmt = _hmt || [];
+(function() {
+ var hm = document.createElement(&quot;script&quot;);
+ hm.src = &quot;https://hm.baidu.com/hm.js?1233333333&quot;;
+ var s = document.getElementsByTagName(&quot;script&quot;)[0]; 
+ s.parentNode.insertBefore(hm, s);
+})();
+</code></pre><p>去除掉多余的代码，得到最重要的一行</p>
+<pre tabindex="0"><code>https://hm.baidu.com/hm.js?65e1c6689693082cffb3b7e1f2d8027f
+</code></pre><p>即引入这个JS文件就能实现统计了，问题后边的32位字符串就是每个站点特有的统计ID</p>
+<h3 id="3hmjs做了些什么">3、hm.js做了些什么</h3>
+<p>该代码加载时，会往用户浏览器中写入名为“HMACCOUNT”的永久cookie，有效期至2038年，以此来区分用户身份。</p>
+<p>同时会获取客户端环境，包括浏览器版本，屏幕分辨率，色深，语言等信息。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ci</td>
+<td>url参数hmci的值</td>
+</tr>
+<tr>
+<td>ck</td>
+<td>是否支持cookie</td>
+</tr>
+<tr>
+<td>cl</td>
+<td>颜色深度 如 “32-bit”</td>
+</tr>
+<tr>
+<td>cm</td>
+<td>url参数hmmd的值</td>
+</tr>
+<tr>
+<td>cp</td>
+<td>url参数hmpl的值</td>
+</tr>
+<tr>
+<td>cw</td>
+<td>url参数hmkw的值</td>
+</tr>
+<tr>
+<td>ds</td>
+<td>屏幕尺寸,如 &lsquo;1024x768&rsquo;</td>
+</tr>
+<tr>
+<td>ep</td>
+<td>初始值为'0'，时间变量，反映页面停留时间，格式大概是：现在时间-载入时间+“，”+另一个很小的时间值</td>
+</tr>
+<tr>
+<td>et</td>
+<td>初始值为'0'，如果ep时间变量不是0的话，它会变成其他</td>
+</tr>
+<tr>
+<td>fl</td>
+<td>flash版本</td>
+</tr>
+<tr>
+<td>ja</td>
+<td>java支持 1</td>
+</tr>
+<tr>
+<td>ln</td>
+<td>语言 zh-cn</td>
+</tr>
+<tr>
+<td>lo</td>
+<td>不知道，一般为0</td>
+</tr>
+<tr>
+<td>lt</td>
+<td>日期 time.time()，如“1327847756”， 在首次请求没有</td>
+</tr>
+<tr>
+<td>nv</td>
+<td>不知道，一般为1或者0</td>
+</tr>
+<tr>
+<td>rnd</td>
+<td>十位随机数字</td>
+</tr>
+<tr>
+<td>sb</td>
+<td>如果是360se浏览器该值等于‘17’</td>
+</tr>
+<tr>
+<td>se</td>
+<td>和搜索引擎相关</td>
+</tr>
+<tr>
+<td>si</td>
+<td>统计代码id</td>
+</tr>
+<tr>
+<td>st</td>
+<td>不确定</td>
+</tr>
+<tr>
+<td>su</td>
+<td>上一页document.referrer</td>
+</tr>
+<tr>
+<td>u</td>
+<td>入口页面</td>
+</tr>
+<tr>
+<td>sw</td>
+<td>不知道，估计和搜索引擎有关，一般为空</td>
+</tr>
+<tr>
+<td>sse</td>
+<td>不知道，估计和搜索引擎有关，一般为空</td>
+</tr>
+<tr>
+<td>v</td>
+<td>统计代码的版本 ，目前该值为“1.2.30”</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4发送请求">4、发送请求</h3>
+<p>当获取到所有信息的时候，就可以向服务器提交请求了，将之前获取到的参数进行整合，并以这些参数为后缀请求hm.gif，大概是这样一个地址</p>
+<pre tabindex="0"><code>https://hm.baidu.com/hm.gif?cc=1&amp;ck=1&amp;cl=24-bit&amp;ds=1920x1080&amp;vl=937&amp;et=0&amp;ja=0&amp;ln=zh-cn&amp;lo=0&amp;lt=1644389470&amp;rnd=692033802&amp;si=99f259e8c1db2b5724781c9ef9612de2&amp;su=https%3A%2F%2Fwww.baidu.com%2Flink%3Furl%3DdKTs8TpNPIBxHA0FzBvFYWcMmRaO0U1JVth3YfAEmT3duPGgfX5TB-wNCTRG8tWz%26wd%3D%26eqid%3Dad168783000bcb1e000000045d3a5a9f&amp;v=1.2.89&amp;lv=3&amp;sn=50785&amp;r=0&amp;ww=1028&amp;ct=!!&amp;u=https%3A%2F%2Fwww.chenzhuofan.top%2F%23%25E7%25A7%2581%25E5%25AF%2586%25E8%258A%25B1%25E5%259B%25AD&amp;tt=%E7%A8%8B%E5%BA%8F%E5%91%98%E5%AF%BC%E8%88%AA%E7%BD%91
+</code></pre><h3 id="5模拟访问">5、模拟访问</h3>
+<p>既然了解了请求原理，那能不能用脚本实现模拟访问呢？答案当然是可以的</p>
+<h3 id="6百度统计的4个请求">6、百度统计的4个请求</h3>
+<p>通过控制台我们可以发现，每访问一个页面都会产生4个请求</p>
+<p>
+        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117224345665.png">
+            <img class="mx-auto" alt="百度统计 4个请求" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117224345665.png" />
+        </a>
+    </p>
+<ul>
+<li>加载hm.js</li>
+<li>加载完毕时候出发两次请求，并传递参数</li>
+<li>退出页面时候，发出一次请求，并传递参数</li>
+</ul>
+<p>实际模拟时，只需要前三次请求即可在访问记录中看到访客记录。</p>
+<h3 id="7代码实现">7、代码实现</h3>
+<h4 id="71java实现">7.1、java实现</h4>
+<pre tabindex="0"><code>package tech.baiduseo;
+
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpUtil;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import lombok.Data;
+import org.jsoup.helper.StringUtil;
+import tech.chenxing.okhttp3.OkHttpUtil;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.text.MessageFormat;
+import java.util.Map;
+import java.util.Random;
+
+@Data
+public class BaiduSeo {
+    private String Referer = &quot;http://www.lixin.me&quot;;
+    private String BaiduID = &quot;&quot;;
+    private String Hjs = &quot;http://hm.baidu.com/h.js?&quot;;
+    private String Hgif = &quot;http://hm.baidu.com/hm.gif?&quot;;
+    private String TargetPage = &quot;/www.lixin.me&quot;;
+    private String UserAgent =
+            &quot;Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)&quot;; // IE9
+    private String MyData =
+            &quot; {'cc': '1', 'ck': '1', 'cl': '32-bit', 'ds': '1024x768', 'et': '0', 'ep': '0', 'fl': '11.0', 'ja': '1',\n&quot;
+                    + &quot;            'ln': 'zh-cn', 'lo': '0', 'nv': '1', 'st': '3', 'v': '1.0.17'}&quot;;
+    private Map&lt;String, String&gt; mapData = Maps.newHashMap();
+
+    public BaiduSeo(String baiduID, String referer, String targetPage) {
+        this.BaiduID = baiduID;
+        this.Referer = referer;
+        this.TargetPage = targetPage;
+        mapData = new Gson().fromJson(MyData, Map.class);
+        mapData.put(&quot;si&quot;, baiduID);
+       mapData.put(&quot;su&quot;, referer);
+       mapData.put(&quot;u&quot;, targetPage);	
+    }
+
+    public void run() throws UnsupportedEncodingException {
+        Map&lt;String, String&gt; mapHeader = Maps.newConcurrentMap();
+        mapHeader.put(&quot;Referer&quot;, this.getReferer());
+        mapHeader.put(&quot;User-Agent&quot;, this.getUserAgent());
+        OkHttpUtil.getInstance().getData(this.Hjs + this.getBaiduID(), mapHeader);
+
+        mapData.put(&quot;rnd&quot;, String.valueOf(new Random().nextInt(1) * 2147483647));
+        mapData.put(&quot;lt&quot;, String.valueOf(System.currentTimeMillis()));
+
+        String finalUrl = getRightUrl(this.getHgif(), mapData);
+        OkHttpUtil.getInstance().getData(finalUrl,mapHeader);
+
+        mapData.put(&quot;rnd&quot;, String.valueOf(new Random().nextInt(1) * 2147483647));
+        mapData.put(&quot;et&quot;, &quot;3&quot;);
+        mapData.put(&quot;ep&quot;, &quot;2000,100&quot;);
+
+        String finalUrl1 = getRightUrl(this.getHgif(), mapData);
+        OkHttpUtil.getInstance().getData(finalUrl1, mapHeader);
+    }
+
+
+    private String getRightUrl(String url, Map&lt;String, String&gt; map)
+            throws UnsupportedEncodingException {
+        String param = &quot;&quot;;
+        for (Map.Entry&lt;String, String&gt; entry : map.entrySet()) {
+            if (StrUtil.isBlank(entry.getKey()) || StrUtil.isBlank(entry.getValue())) {
+                continue;
+            }
+            param +=
+                    MessageFormat.format(
+                            &quot;&amp;{0}={1}&quot;,
+                            entry.getKey(), URLEncoder.encode(entry.getValue(), &quot;UTF-8&quot;));
+        }
+        System.out.println(url + param.substring(1));
+        return url + param.substring(1);
+    }
+
+    public static void main(String[] args) throws UnsupportedEncodingException {
+        BaiduSeo baiduSeo =
+                new BaiduSeo(
+                        &quot;xxxxx&quot;,
+                        &quot;https://juejin.cn/career/&quot;,
+                        &quot;https://juejin.cn/search&quot;);
+        baiduSeo.run();
+        System.out.println(&quot;xxxxx&quot;);
+    }
+}
+</code></pre><h4 id="72python实现">7.2、python实现</h4>
+<pre tabindex="0"><code>import urllib
+import random
+import math
+import time
+from http import cookiejar
+
+
+########################################################################
+class Baidu:
+    &quot;&quot;&quot;&quot;&quot;&quot;
+    Referer = 'http://www.lixin.me'
+    TargetPage = '/www.lixin.me'
+    BaiduID = ''
+    Hjs = &quot;http://hm.baidu.com/h.js?&quot;
+    Hgif = &quot;http://hm.baidu.com/hm.gif?&quot;
+    UserAgent = 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)'  # IE9
+    MyData = {'cc': '1', 'ck': '1', 'cl': '32-bit', 'ds': '1024x768', 'et': '0', 'ep': '0', 'fl': '11.0', 'ja': '1',
+              'ln': 'zh-cn', 'lo': '0', 'nv': '1', 'st': '3', 'v': '1.0.17'}
+
+    # ----------------------------------------------------------------------
+    def __init__(self, baiduID, targetPage=None, refererPage=None):
+        &quot;&quot;&quot;Constructor&quot;&quot;&quot;
+        self.TargetPage = targetPage or self.TargetPage
+        self.Referer = refererPage or self.Referer
+        self.BaiduID = baiduID
+        self.MyData['si'] = self.BaiduID
+        self.MyData['su'] = urllib.parse.quote(self.Referer)
+        pass
+
+    def run(self, timeout=5):
+        # 通过cookieJar（）类构建一个cookieJar（）对象，用来保存cookie的值
+
+        cookie = cookiejar.CookieJar()
+
+        # 通过HTTPCookieProcessor（）处理器类构建一个处理器对象，用来处理cookie
+        # 参数就是构建的CookieJar（）对象
+        cookie_handler = urllib.request.HTTPCookieProcessor(cookie)
+
+        # 构建一个自定义的opener
+        opener = urllib.request.build_opener(cookie_handler)
+
+        opener.addheaders = [(&quot;Referer&quot;, self.TargetPage), (&quot;User-Agent&quot;, self.UserAgent)]
+
+        response = opener.open(self.Hjs + self.BaiduID).info()
+        self.MyData['rnd'] = int(random.random() * 2147483647)
+        self.MyData['lt'] = int(time.time())
+        fullurl = self.Hgif + urllib.parse.urlencode(self.MyData)
+        response2 = opener.open(fullurl, timeout=timeout).info()
+        self.MyData['rnd'] = int(random.random() * 2147483647)
+        self.MyData['et'] = '3'
+        self.MyData['ep'] = '2000,100'
+        response3 = opener.open(self.Hgif + urllib.parse.urlencode(self.MyData), timeout=timeout).info()
+
+
+
+if __name__ == &quot;__main__&quot;:
+    a = Baidu('xxxxxx', 'https://www.google.com/', 'https://www.google.com/search')
+    a.run()
+</code></pre><h4 id="73php实现">7.3、php实现</h4>
+<pre tabindex="0"><code>function baiduVisit($bdId,$targetUrl,$referer = 'yantuz.cn',$visitTimes=1){
+ $bdjs = 'https://hm.baidu.com/hm.js?';
+ $bdgif = 'https://hm.baidu.com/hm.gif?';
+ //$bdId = '65e1c6689693082cffb3b7e1f2d8027f';
+
+$arr=array(
+ 'cc'=&gt; '0',
+ 'ck'=&gt; '1',
+ 'cl'=&gt;'24-bit',
+ 'ds'=&gt; '1440x900',
+ 'vl'=&gt; '747',
+ #'ep'=&gt; '6346,2301',#时间
+ 'et'=&gt; '0', #3
+ 'fl'=&gt; '29.0',
+ 'ja'=&gt; '0',
+ 'ln'=&gt; 'zh-cn',
+ 'lo'=&gt; '0',
+ 'lt'=&gt; time(),
+ 'rnd'=&gt; rand(1000000000,2000000000), #random
+ 'si'=&gt; $bdId,
+ 'v'=&gt; '1.2.30',
+ 'lv'=&gt; '3',
+ 'sn'=&gt; '25573',#25581
+ 'su'=&gt; $referer, #请求来源
+
+#'ct'=&gt; '!!',
+ #'tt'=&gt; '页面标题'
+ );
+ //echo http_build_query($arr);
+
+// Create a stream
+ $opts = array(
+ 'http'=&gt;array(
+ 'method'=&gt;&quot;GET&quot;,
+ 'header'=&gt;&quot;Accept-language: cn\r\n&quot;.&quot;referer:$targetUrl&quot;,
+ 'timeout'=&gt;3,
+ )
+ );
+ $context = stream_context_create($opts);
+ $url1 = $bdjs.$bdId;
+ //echo $url1.'&lt;br /&gt;';
+ $arr1 = array_merge($arr,array('ep'=&gt; '2302,153','u'=&gt; $referer));
+ $arr1['et'] = 3;
+ $url2 = $bdgif.http_build_query($arr1);
+ //echo $url2.'&lt;br /&gt;';
+ $arr2 = array_merge($arr,array('ct'=&gt; '!!','tt'=&gt; 'title'));
+ $url3 = $bdgif.http_build_query($arr2);
+ //echo $url3.'&lt;br /&gt;';
+
+for ($x=0; $x&lt;$visitTimes; $x++) {
+ file_get_contents($url1, false, $context);
+ file_get_contents($url2, false, $context);
+ file_get_contents($url3, false, $context);
+ //echo $x;
+ }
+}
+
+baiduVisit('百度ID','https://yantuz.cn/');
+</code></pre><p>
+        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117224909143.png">
+            <img class="mx-auto" alt="测试效果" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117224909143.png" />
+        </a>
+    </p>
+<p>代码的关键是：<strong>需要启用httputil工具类的cookies支持</strong></p>
+<p>
+        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117225955524.png">
+            <img class="mx-auto" alt="思考" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210117225955524.png" />
+        </a>
+    </p>
+<p>​       如果你是程序员或者博主，是不是窥探出利用价值了呢？</p>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/How-to-simulate-Baidu-statistics-code.html">https://www.cxztt.com/How-to-simulate-Baidu-statistics-code.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/The-only-way-for-novice-to-webmaster-%286%29.html">新手到站长的必经之路（六）</a></li>
+        
+        <li><a href="/2019alipay-pinduoduo-toutiao.html">2019alipay-pinduoduo-toutiao</a></li>
+        
+        <li><a href="/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html">2020程序员节总结-如何实现自我价值</a></li>
+        
+        <li><a href="/5-faces-Ali,-finally-got-the-offer.html">5面阿里,终获offer</a></li>
+        
+        <li><a href="/AQS.html">AQS</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/seo'>seo</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

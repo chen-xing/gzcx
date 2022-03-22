@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on 主人翁</title>
+    <link>https://www.cxztt.com/post/</link>
+    <description>Recent content in Posts on 主人翁</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 28 Feb 2022 11:55:00 +0800</lastBuildDate><atom:link href="https://www.cxztt.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>linux系统盘满了怎么办，磁盘满了怎么转移到别的磁盘？</title>
+      <link>https://www.cxztt.com/linux-docker-ln-df.html</link>
+      <pubDate>Mon, 28 Feb 2022 11:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/linux-docker-ln-df.html</guid>
+      <description>1、现象 使用docker部署了一个蓝眼网盘，正常运行了一段时间，今天突然无法访问了。起初还以为是docker进程因为某种原因down机了，或者因为网络策略无法访</description>
+    </item>
+    
+    <item>
+      <title>Rgblog迁移指南</title>
+      <link>https://www.cxztt.com/linux-rgblog-migrate.html</link>
+      <pubDate>Wed, 23 Feb 2022 11:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/linux-rgblog-migrate.html</guid>
+      <description>1、必备的环境 jdk nginx redis python cckiller docker 2、目录规范说明 3、docker的安装 参考 docker安装 4、jdk的安装 因为系统的配置比较低所以使用的32位 链接: https://pan.baidu.com/s/1d5wD0PV3HJyQZjqUIOh63g?pwd=y35r 提取码: y35r 复制这</description>
+    </item>
+    
+    <item>
+      <title>前端对话框插件simple-dialog使用指南</title>
+      <link>https://www.cxztt.com/js-simple-dialog.html</link>
+      <pubDate>Wed, 23 Feb 2022 11:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/js-simple-dialog.html</guid>
+      <description>1、效果预览 预览地址：程序员导航网 2、关键代码 引入代码依赖，对应的代码可以参考 https://www.chenzhuofan.top/static/js/simple-dialog.js https://www.chenzhuofan.top/static/css/simple-dialog.css &amp;lt;link rel=&amp;quot;stylesheet&amp;quot; href=&amp;quot;/static/css/simple-dialog.css&amp;quot;&amp;gt; &amp;lt;script src=&amp;quot;/static/js/simple-dialog.js&amp;quot;&amp;gt;&amp;lt;/script&amp;gt; 对话框的使用 &amp;lt;p&amp;gt;&amp;lt;a href=&amp;quot;#&amp;quot; rel=&amp;quot;rs-dialog&amp;quot; data-target=&amp;quot;myModal1&amp;quot; class=&amp;quot;showButton&amp;q</description>
+    </item>
+    
+    <item>
+      <title>git提交代码到github提示失败</title>
+      <link>https://www.cxztt.com/github-submit-fail.html</link>
+      <pubDate>Tue, 22 Feb 2022 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/github-submit-fail.html</guid>
+      <description>1、报错信息 Connection reset by 20.205.243.166 port 22 fatal: Could not read from remote repository. Please make sure you have the correct access rights and the repository exists. 2、处理方案 尝试将host文件中添加 192.30.255.112 github.com git 185.31.16.184 github.global.ssl.fastly.net</description>
+    </item>
+    
+    <item>
+      <title>使用cloudflare CDN来免费加速自己的博客</title>
+      <link>https://www.cxztt.com/hugo-github-cloudflare.html</link>
+      <pubDate>Tue, 22 Feb 2022 11:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/hugo-github-cloudflare.html</guid>
+      <description>1、注册账号 先通过https://dash.cloudflare.com/sign-up链接进行注册 2、添加站点 添加站点，把对应的域名填写进去： 提交之后会自动扫</description>
+    </item>
+    
+    <item>
+      <title>HUGO博客使用 UTTERANCES 作为评论系统</title>
+      <link>https://www.cxztt.com/hugo-utterances-github.html</link>
+      <pubDate>Mon, 21 Feb 2022 11:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/hugo-utterances-github.html</guid>
+      <description>1、创建github仓库 首先在github上创建一个空仓库，如：hugoblogtalks，并且初始化设置，仓库必须是Public，而不是私有的，这样我们的读者</description>
+    </item>
+    
+    <item>
+      <title>linux下查找python的安装目录</title>
+      <link>https://www.cxztt.com/linux-docker-python.html</link>
+      <pubDate>Fri, 18 Feb 2022 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/linux-docker-python.html</guid>
+      <description>1、查找docker docker ps 2、进入docker容器 docker exec -it e23686eaed46 /bin/sh 3、确定python版本 python --version 4、确定pyhon安装目录 首选输入python命令进入python的编码环</description>
+    </item>
+    
+    <item>
+      <title>关于自建站的一些感悟</title>
+      <link>https://www.cxztt.com/thinking-about-blog.html</link>
+      <pubDate>Fri, 18 Feb 2022 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/thinking-about-blog.html</guid>
+      <description>1、为什么要自建站 可以按照个人的喜好进行自由发挥 可以实践自己学习的最新的知识 底层数据自己把控，迁移方便 督促自己养成良好的总结记录的习惯 2、关于域名 域名以国际顶级</description>
+    </item>
+    
+    <item>
+      <title>aop联合反射实现mysql与hbase的读写切换</title>
+      <link>https://www.cxztt.com/mysql-hbase-aop.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/mysql-hbase-aop.html</guid>
+      <description>1、能够做的事情 开关控制mysql和hbase的读写切换，实时生效 内置监控可以观察hbase的运行性能（刚切过去，性能稳定性有待考究） 2、核心的代码 package tech.chenxing.aop; import tech.chenxing.conf.RgSystemConfig; import tech.chenxing.util.SpringTool;</description>
+    </item>
+    
+    <item>
+      <title>freemarker语法</title>
+      <link>https://www.cxztt.com/freemarker-base.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/freemarker-base.html</guid>
+      <description>1、基础语法 freemarker语法、freemarker入门、简单高效的模板引擎。 语法 说明 ${expr} 通用插值 #{expr}或#{expr;format} 数字格式化插值</description>
+    </item>
+    
+    <item>
+      <title>github action 部署hugo</title>
+      <link>https://www.cxztt.com/github-action-hugo.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/github-action-hugo.html</guid>
+      <description>1、github action脚本 经过验证的github action 部署hugo脚本 name: GitHubPages on: push: branches: - master # Set a branch to deploy jobs: deploy: runs-on: ubuntu-latest steps: - uses: actions/checkout@v2 - name: Setup Hugo uses: peaceiris/actions-hugo@v2 with: # hugo-version: &#39;${{ steps.hugo-version.outputs.HUGO_VERSION }}&#39; hugo-version: &#39;0.92.2&#39; extended: true - name: Build run: hugo --minify -</description>
+    </item>
+    
+    <item>
+      <title>git常用的操作</title>
+      <link>https://www.cxztt.com/common-git-operate.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/common-git-operate.html</guid>
+      <description>git常用的操作语法介绍 1、回归合并代码的请求 git checkout . &amp;amp;&amp;amp; git clean -xdf 2、强制删除本地的代码分支 git branch -D branchName 3、检出代码到本地 git checkout -b 本地分支名 远程分支名</description>
+    </item>
+    
+    <item>
+      <title>git本地未提交被丢弃的文件如何找回</title>
+      <link>https://www.cxztt.com/git-base.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/git-base.html</guid>
+      <description>1、问题背景 写了一天代码，下班的时候随手关闭sourceTree,然后在关闭之前顺手执行了丢弃操作。（以为是测试项目的代码，无需保留）。下一秒猛地意识到是今天的</description>
+    </item>
+    
+    <item>
+      <title>Idea快捷键大全_Windows</title>
+      <link>https://www.cxztt.com/idea-base.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/idea-base.html</guid>
+      <description>Idea快捷键大全Windows版本 Ctrl 快捷键 介绍 Ctrl + F 在当前文件进行文本查找 （必备） Ctrl + R 在当前文件进行文本替换 （必备） Ctrl + Z 撤销 （必备） Ctrl + Y 删除光标所在行 或</description>
+    </item>
+    
+    <item>
+      <title>IDEA快捷键突然无效怎么办</title>
+      <link>https://www.cxztt.com/idea-problem.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/idea-problem.html</guid>
+      <description>郑重声明: 本文首发于人工博客 ​ 在使用IDEA时，发现一些快捷键无法使用或者效果莫名其妙，列举2个，其他的查找问题的思路类似（就是跟其他快捷键冲突） IDEA中Ct</description>
+    </item>
+    
+    <item>
+      <title>markdown绘图</title>
+      <link>https://www.cxztt.com/markdown-draw.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/markdown-draw.html</guid>
+      <description>Alice-&amp;gt;Bob: Hello Bob, how are you? Note right of Bob: Bob thinks Bob--&amp;gt;Alice: I am good thanks! st=&amp;gt;start: Start op=&amp;gt;operation: Your Operation cond=&amp;gt;condition: Yes or No? e=&amp;gt;end st-&amp;gt;op-&amp;gt;cond cond(yes)-&amp;gt;e cond(no)-&amp;gt;op pie title Pie Chart &amp;quot;111&amp;quot; : 386 &amp;quot;11&amp;quot; : 85 &amp;quot;1111&amp;quot; : 150 stateDiagram [*] --&amp;gt; Still Still --&amp;gt; [*] Still --&amp;gt; Moving Moving --&amp;gt; Still Moving --&amp;gt; Crash Crash --&amp;gt; [*] classDiagram Animal &amp;lt;|-- Duck Animal &amp;lt;|-- Fish Animal &amp;lt;|-- Zebra Animal : +int age Animal : +String gender</description>
+    </item>
+    
+    <item>
+      <title>markdown绘图语法</title>
+      <link>https://www.cxztt.com/markdown-grammar.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/markdown-grammar.html</guid>
+      <description>1、标题 # 一级标题 ## 二级标题 ### 三级标题 #### 四级标题 ##### 五级标题 ###### 最小只有六级标题 2、加粗 **我被加粗了** 效果 我被加粗了 3、倾斜 *我倾斜了了* 效果 我倾斜了了 4、代码</description>
+    </item>
+    
+    <item>
+      <title>postman实现从csv中读取参数循环调用</title>
+      <link>https://www.cxztt.com/postman-tool.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/postman-tool.html</guid>
+      <description>1、背景 有一批数据需要修正，从操作上看是借助postman，串行调用2个接口就能解决问题。问题待处理的数据比较多。那么postman是否支持csv的参数化?答案</description>
+    </item>
+    
+    <item>
+      <title>图解开源协议</title>
+      <link>https://www.cxztt.com/git-sense.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/git-sense.html</guid>
+      <description>1、一图胜万言 2、总结 使用者最喜欢的协议是 MIT 开源者最喜欢的协议是 GPL 开源不易，为各位开源的前辈们点赞</description>
+    </item>
+    
+    <item>
+      <title>程序员健康指南阅读笔记</title>
+      <link>https://www.cxztt.com/coder-sports-healthy.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/coder-sports-healthy.html</guid>
+      <description>编程需要程序员全神贯注，这就常常导致我们忽略生活的其他方面，其中最被忽略的就是，健康状况。 职业不应该让你犯职业病，只要用对了方法，它就不会造成伤害。 做出改变 努力</description>
+    </item>
+    
+    <item>
+      <title>网关代理插件zuul的使用</title>
+      <link>https://www.cxztt.com/java-zuul.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/java-zuul.html</guid>
+      <description>1、引入pom &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.cloud&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-cloud-starter-zuul&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;1.4.0.RELEASE&amp;lt;/version&amp;gt; &amp;lt;exclusions&amp;gt; &amp;lt;exclusion&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-boot-starter-logging&amp;lt;/artifactId&amp;gt; &amp;lt;/exclusion&amp;gt; &amp;lt;/exclusions&amp;gt; &amp;lt;/dependency&amp;gt; 2、开启配置 @EnableZuulProxy // 开启网关功能 public class Application { } 3、自定义配置规则 zuul.routes.products.path = /** zuul.routes.products.url = http://in-testopenapi.esign.cn:9696 zuul.ignored-patterns = /**/notice/**,/doc.html,/swagger-resources,/v2/api-docs,/**/webjars/**,/**/health,/**/shutdown,/**/eurekaRegistration/stop,/**/mappings zuul.routes.products.path 表示拦截的url,/**表示拦截所有的请求，多个</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>java on 主人翁</title>
+    <link>https://www.cxztt.com/tags/java/</link>
+    <description>Recent content in java on 主人翁</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Wed, 18 Dec 2019 21:55:00 +0800</lastBuildDate><atom:link href="https://www.cxztt.com/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>aop联合反射实现mysql与hbase的读写切换</title>
+      <link>https://www.cxztt.com/mysql-hbase-aop.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/mysql-hbase-aop.html</guid>
+      <description>1、能够做的事情 开关控制mysql和hbase的读写切换，实时生效 内置监控可以观察hbase的运行性能（刚切过去，性能稳定性有待考究） 2、核心的代码 package tech.chenxing.aop; import tech.chenxing.conf.RgSystemConfig; import tech.chenxing.util.SpringTool;</description>
+    </item>
+    
+  </channel>
+</rss>

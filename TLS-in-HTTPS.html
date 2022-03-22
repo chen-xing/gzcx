@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>HTTPS中的TLS | 主人翁</title>
+    <meta property="og:title" content="HTTPS中的TLS - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="HTTPS中的TLS">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.cxztt.com/TLS-in-HTTPS.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.cxztt.com">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.cxztt.com">首页</a>
+                    
+                    <a  href="https://www.cxztt.com/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.cxztt.com/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.cxztt.com/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#31-tls-工作流程">3.1. TLS 工作流程</a></li>
+    <li><a href="#32-密码基础">3.2. 密码基础</a>
+      <ul>
+        <li><a href="#321-伪随机数生成器">3.2.1. 伪随机数生成器</a></li>
+        <li><a href="#322-消息认证码">3.2.2. 消息认证码</a></li>
+        <li><a href="#323-数字签名">3.2.3. 数字签名</a></li>
+        <li><a href="#324-公钥密码">3.2.4. 公钥密码</a></li>
+        <li><a href="#325-证书">3.2.5. 证书</a></li>
+        <li><a href="#326-密码小结">3.2.6. 密码小结</a></li>
+      </ul>
+    </li>
+    <li><a href="#33-tls-使用的密码技术">3.3. TLS 使用的密码技术</a></li>
+    <li><a href="#34-tls-总结">3.4. TLS 总结</a></li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">HTTPS中的TLS</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89'>他山之玉</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <!-- raw HTML omitted -->
+<ul>
+<li><a href="#1-ssl-%E4%B8%8E-tls">1. SSL 与 TLS</a></li>
+<li><a href="#2-%E4%BB%8E%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE%E7%9A%84%E8%A7%92%E5%BA%A6%E7%90%86%E8%A7%A3-https">2. 从网络协议的角度理解 HTTPS</a></li>
+<li><a href="#3-%E4%BB%8E%E5%AF%86%E7%A0%81%E5%AD%A6%E7%9A%84%E8%A7%92%E5%BA%A6%E7%90%86%E8%A7%A3-https">3. 从密码学的角度理解 HTTPS</a>
+<ul>
+<li><a href="#31-tls-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B">3.1. TLS 工作流程</a></li>
+<li><a href="#32-%E5%AF%86%E7%A0%81%E5%9F%BA%E7%A1%80">3.2. 密码基础</a>
+<ul>
+<li><a href="#321-%E4%BC%AA%E9%9A%8F%E6%9C%BA%E6%95%B0%E7%94%9F%E6%88%90%E5%99%A8">3.2.1. 伪随机数生成器</a></li>
+<li><a href="#322-%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%E7%A0%81">3.2.2. 消息认证码</a></li>
+<li><a href="#323-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D">3.2.3. 数字签名</a></li>
+<li><a href="#324-%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81">3.2.4. 公钥密码</a></li>
+<li><a href="#325-%E8%AF%81%E4%B9%A6">3.2.5. 证书</a></li>
+<li><a href="#326-%E5%AF%86%E7%A0%81%E5%B0%8F%E7%BB%93">3.2.6. 密码小结</a></li>
+</ul>
+</li>
+<li><a href="#33-tls-%E4%BD%BF%E7%94%A8%E7%9A%84%E5%AF%86%E7%A0%81%E6%8A%80%E6%9C%AF">3.3. TLS 使用的密码技术</a></li>
+<li><a href="#34-tls-%E6%80%BB%E7%BB%93">3.4. TLS 总结</a></li>
+</ul>
+</li>
+<li><a href="#4-rsa-%E7%AE%80%E5%8D%95%E7%A4%BA%E4%BE%8B">4. RSA 简单示例</a></li>
+<li><a href="#5-%E5%8F%82%E8%80%83">5. 参考</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h1 id="1-ssl-与-tls">1. SSL 与 TLS</h1>
+<p>SSL：（Secure Socket Layer） 安全套接层，于 1994 年由网景公司设计，并于 1995 年发布了 3.0 版本<br>
+TLS：（Transport Layer Security）传输层安全性协议，是 IETF 在 SSL3.0 的基础上设计的协议<br>
+以下全部使用 TLS 来表示</p>
+<h1 id="2-从网络协议的角度理解-https">2. 从网络协议的角度理解 HTTPS</h1>
+<p>
+        <a data-fancybox="gallery" href="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/%E4%B8%83%E5%B1%82.png">
+            <img class="mx-auto" alt="此图并不准确" src="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/%E4%B8%83%E5%B1%82.png" />
+        </a>
+    <br>
+HTTP：HyperText Transfer Protocol 超文本传输协议<br>
+HTTPS：Hypertext Transfer Protocol Secure 超文本传输安全协议<br>
+TLS：位于 HTTP 和 TCP 之间的协议，其内部有 TLS握手协议、TLS记录协议<br>
+HTTPS 经由 HTTP 进行通信，但利用 TLS 来保证安全，即 HTTPS = HTTP + TLS</p>
+<h1 id="3-从密码学的角度理解-https">3. 从密码学的角度理解 HTTPS</h1>
+<p>HTTPS 使用 TLS 保证安全，这里的“安全”分两部分，一是传输内容加密、二是服务端的身份认证</p>
+<h2 id="31-tls-工作流程">3.1. TLS 工作流程</h2>
+<p>
+        <a data-fancybox="gallery" href="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/tls%E6%B5%81%E7%A8%8B.png">
+            <img class="mx-auto" alt="此图并不准确" src="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/tls%E6%B5%81%E7%A8%8B.png" />
+        </a>
+    <br>
+此为服务端单向认证，还有客户端/服务端双向认证，流程类似，只不过客户端也有自己的证书，并发送给服务器进行验证</p>
+<h2 id="32-密码基础">3.2. 密码基础</h2>
+<h3 id="321-伪随机数生成器">3.2.1. 伪随机数生成器</h3>
+<p>为什么叫伪随机数，因为没有真正意义上的随机数，具体可以参考 Random/TheadLocalRandom<br>
+它的主要作用在于生成对称密码的秘钥、用于公钥密码生成秘钥对</p>
+<h3 id="322-消息认证码">3.2.2. 消息认证码</h3>
+<p>消息认证码主要用于验证消息的完整性与消息的认证，其中消息的认证指“消息来自正确的发送者”</p>
+<blockquote>
+<p>消息认证码用于验证和认证，而不是加密</p>
+</blockquote>
+<p>
+        <a data-fancybox="gallery" href="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%E7%A0%81%E8%BF%87%E7%A8%8B.png">
+            <img class="mx-auto" alt="消息认证码过程" src="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%E7%A0%81%E8%BF%87%E7%A8%8B.png" />
+        </a>
+    </p>
+<ol>
+<li>发送者与接收者事先共享秘钥</li>
+<li>发送者根据发送消息计算 MAC 值</li>
+<li>发送者发送消息和 MAC 值</li>
+<li>接收者根据接收到的消息计算 MAC 值</li>
+<li>接收者根据自己计算的 MAC 值与收到的 MAC 对比</li>
+<li>如果对比成功，说明消息完整，并来自与正确的发送者</li>
+</ol>
+<h3 id="323-数字签名">3.2.3. 数字签名</h3>
+<p>消息认证码的缺点在于<strong>无法防止否认</strong>，因为共享秘钥被 client、server 两端拥有，server 可以伪造 client 发送给自己的消息（自己给自己发送消息），为了解决这个问题，我们需要它们有各自的秘钥不被第二个知晓（这样也解决了共享秘钥的配送问题）</p>
+<p>
+        <a data-fancybox="gallery" href="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E8%BF%87%E7%A8%8B.png">
+            <img class="mx-auto" alt="数字签名过程" src="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E8%BF%87%E7%A8%8B.png" />
+        </a>
+    </p>
+<blockquote>
+<p>数字签名和消息认证码都<strong>不是为了加密</strong><br>
+可以将单向散列函数获取散列值的过程理解为使用 md5 摘要算法获取摘要的过程</p>
+</blockquote>
+<p>使用自己的私钥对自己所认可的消息生成一个该消息专属的签名，这就是数字签名，表明我承认该消息来自自己<br>
+注意：<strong>私钥用于加签，公钥用于解签，每个人都可以解签，查看消息的归属人</strong></p>
+<h3 id="324-公钥密码">3.2.4. 公钥密码</h3>
+<p>公钥密码也叫非对称密码，由公钥和私钥组成，它是最开始是为了解决秘钥的配送传输安全问题，即，我们不配送私钥，只配送公钥，私钥由本人保管 <br>
+它与数字签名相反，公钥密码的私钥用于解密、公钥用于加密，每个人都可以用别人的公钥加密，但只有对应的私钥才能解开密文<br>
+client：明文 + 公钥 = 密文<br>
+server：密文 + 私钥 = 明文<br>
+注意：<strong>公钥用于加密，私钥用于解密，只有私钥的归属者，才能查看消息的真正内容</strong></p>
+<h3 id="325-证书">3.2.5. 证书</h3>
+<p>证书：全称公钥证书（Public-Key Certificate, PKC）,里面保存着归属者的基本信息，以及证书过期时间、归属者的公钥，并由认证机构（Certification Authority, <strong>CA</strong>）施加数字签名，表明，某个认证机构认定该公钥的确属于此人</p>
+<blockquote>
+<p>想象这个场景：你想在支付宝页面交易，你需要支付宝的公钥进行加密通信，于是你从百度上搜索关键字“支付宝公钥”，你获得了支什宝的公钥，这个时候，支什宝通过中间人攻击，让你访问到了他们支什宝的页面，最后你在这个支什宝页面完美的使用了支什宝的公钥完成了与支什宝的交易
+
+        <a data-fancybox="gallery" href="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/dns%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB.png">
+            <img class="mx-auto" alt="证书过程" src="https://leran2deeplearnjavawebtech.oss-cn-beijing.aliyuncs.com/somephoto/dns%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB.png" />
+        </a>
+    </p>
+</blockquote>
+<p>在上面的场景中，你可以理解支付宝证书就是由支付宝的公钥、和给支付宝颁发证书的企业的数字签名组成<br>
+任何人都可以给自己或别人的公钥添加自己的数字签名，表明：我拿我的尊严担保，我的公钥/别人的公钥是真的，至于信不信那是另一回事了</p>
+<h3 id="326-密码小结">3.2.6. 密码小结</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">密码</th>
+<th style="text-align:left">作用</th>
+<th style="text-align:left">组成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">消息认证码</td>
+<td style="text-align:left">确认消息的完整、并对消息的来源认证</td>
+<td style="text-align:left">共享秘钥+消息的散列值</td>
+</tr>
+<tr>
+<td style="text-align:left">数字签名</td>
+<td style="text-align:left">对消息的散列值签名</td>
+<td style="text-align:left">公钥+私钥+消息的散列值</td>
+</tr>
+<tr>
+<td style="text-align:left">公钥密码</td>
+<td style="text-align:left">解决秘钥的配送问题</td>
+<td style="text-align:left">公钥+私钥+消息</td>
+</tr>
+<tr>
+<td style="text-align:left">证书</td>
+<td style="text-align:left">解决公钥的归属问题</td>
+<td style="text-align:left">公钥密码中的公钥+数字签名</td>
+</tr>
+</tbody>
+</table>
+<h2 id="33-tls-使用的密码技术">3.3. TLS 使用的密码技术</h2>
+<ol>
+<li>伪随机数生成器：秘钥生成随机性，更难被猜测</li>
+<li>对称密码：对称密码使用的秘钥就是由伪随机数生成，相较于非对称密码，效率更高</li>
+<li>消息认证码：保证消息信息的完整性、以及验证消息信息的来源</li>
+<li>公钥密码：证书技术使用的就是公钥密码</li>
+<li>数字签名：验证证书的签名，确定由真实的某个 CA 颁发</li>
+<li>证书：解决公钥的真实归属问题，降低中间人攻击概率</li>
+</ol>
+<h2 id="34-tls-总结">3.4. TLS 总结</h2>
+<p>TLS 是一系列密码工具的框架，作为框架，它也是非常的灵活，体现在每个工具套件它都可以替换，即：客户端与服务端之间协商密码套件，从而更难的被攻破，例如使用不同方式的对称密码，或者公钥密码、数字签名生成方式、单向散列函数技术的替换等</p>
+<h1 id="4-rsa-简单示例">4. RSA 简单示例</h1>
+<p>RSA 是一种公钥密码算法，我们简单的走一遍它的加密解密过程<br>
+加密算法：密文 = (明文^E) mod N，其中公钥为{E,N}，即”求明文的E次方的对 N 的余数“<br>
+解密算法：明文 = (密文^D) mod N，其中秘钥为{D,N}，即”求密文的D次方的对 N 的余数“<br>
+例：我们已知公钥为{5,323}，私钥为{29,323}，明文为300，请写出加密和解密的过程：</p>
+<blockquote>
+<p>加密：密文 = 123 ^ 5 mod 323 = 225<br>
+解密：明文 = 225 ^ 29 mod 323 = [[(225 ^ 5) mod 323] * [(225 ^ 5) mod 323] * [(225 ^ 5) mod 323] * [(225 ^ 5) mod 323] * [(225 ^ 5) mod 323] * [(225 ^ 4) mod 323]] mod 323 = (4 * 4 * 4 * 4 * 4 * 290) mod 323 = 123</p>
+</blockquote>
+<h1 id="5-参考">5. 参考</h1>
+<ol>
+<li>SSL加密发生在哪里：<a href="https://security.stackexchange.com/questions/19681/where-does-ssl-encryption-take-place">https://security.stackexchange.com/questions/19681/where-does-ssl-encryption-take-place</a></li>
+<li>TLS工作流程：<a href="https://blog.csdn.net/ustccw/article/details/76691248">https://blog.csdn.net/ustccw/article/details/76691248</a></li>
+<li>《图解密码技术》：<a href="https://book.douban.com/subject/26822106/">https://book.douban.com/subject/26822106/</a> 豆瓣评分 9.5</li>
+</ol>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.cxztt.com">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.cxztt.com/TLS-in-HTTPS.html">https://www.cxztt.com/TLS-in-HTTPS.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/2019alipay-pinduoduo-toutiao.html">2019alipay-pinduoduo-toutiao</a></li>
+        
+        <li><a href="/5-faces-Ali,-finally-got-the-offer.html">5面阿里,终获offer</a></li>
+        
+        <li><a href="/AQS.html">AQS</a></li>
+        
+        <li><a href="/ArrayList.html">ArrayList</a></li>
+        
+        <li><a href="/ArrayList-Grow.html">ArrayList-Grow</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89'>他山之玉</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "yourdiscussshortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.cxztt.com">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.cxztt.com/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.cxztt.com">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.cxztt.com/2019alipay-pinduoduo-toutiao.html" title="2019alipay-pinduoduo-toutiao">2019alipay-pinduoduo-toutiao</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/2020-Programmer%27s-Day-Summary---How-to-Realize-Self-worth.html" title="2020程序员节总结-如何实现自我价值">2020程序员节总结-如何实现自我价值</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/5-faces-Ali,-finally-got-the-offer.html" title="5面阿里,终获offer">5面阿里,终获offer</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/alibaba-1.html" title="alibaba-1">alibaba-1</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AOP-joint-reflection-realizes-read-and-write-switching-between-mysql-and-hbase.html" title="aop联合反射实现mysql与hbase的读写切换">aop联合反射实现mysql与hbase的读写切换</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/AQS.html" title="AQS">AQS</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList.html" title="ArrayList">ArrayList</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/ArrayList-Grow.html" title="ArrayList-Grow">ArrayList-Grow</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arrays,-CollectionsCommonMethods.html" title="Arrays,CollectionsCommonMethods">Arrays,CollectionsCommonMethods</a>
+    </li>
+    
+    <li>
+        <a href="https://www.cxztt.com/Arthas-User-Guide.html" title="Arthas使用指南">Arthas使用指南</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (7)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring/">Spring (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Spring-Boot/">Spring Boot (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (11)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/blog/">blog (6)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/healthy/">healthy (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/http/">http (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Java/">Java (38)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/postman/">postman (3)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/seo/">seo (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/swing/">swing (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/thinking/">thinking (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/Tool/">Tool (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪 (5)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉 (80)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%89%8D%E7%AB%AF/">前端 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%AE%89%E5%85%A8/">安全 (2)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E5%B7%A5%E5%85%B7/">工具 (33)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位 (4)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%AB%99%E9%95%BF/">站长 (20)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E7%BB%8F%E9%AA%8C/">经验 (14)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记 (1)</a></li>
+    
+    <li><a href="https://www.cxztt.com/categories/%E8%BF%90%E7%BB%B4/">运维 (5)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring/">Spring</a>
+    
+    <a href="https://www.cxztt.com/tags/Spring-Boot/">Spring Boot</a>
+    
+    <a href="https://www.cxztt.com/tags/blog/">blog</a>
+    
+    <a href="https://www.cxztt.com/tags/freemarker/">freemarker</a>
+    
+    <a href="https://www.cxztt.com/tags/git/">git</a>
+    
+    <a href="https://www.cxztt.com/tags/http/">http</a>
+    
+    <a href="https://www.cxztt.com/tags/idea/">idea</a>
+    
+    <a href="https://www.cxztt.com/tags/java/">java</a>
+    
+    <a href="https://www.cxztt.com/tags/linux/">linux</a>
+    
+    <a href="https://www.cxztt.com/tags/markdown/">markdown</a>
+    
+    <a href="https://www.cxztt.com/tags/postman/">postman</a>
+    
+    <a href="https://www.cxztt.com/tags/seo/">seo</a>
+    
+    <a href="https://www.cxztt.com/tags/sports/">sports</a>
+    
+    <a href="https://www.cxztt.com/tags/swing/">swing</a>
+    
+    <a href="https://www.cxztt.com/tags/tool/">tool</a>
+    
+    <a href="https://www.cxztt.com/tags/zuul/">zuul</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%B9%98%E9%A3%8E%E7%A0%B4%E6%B5%AA/">乘风破浪</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%96%E5%B1%B1%E4%B9%8B%E7%8E%89/">他山之玉</a>
+    
+    <a href="https://www.cxztt.com/tags/%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/">代码片段</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%89%8D%E7%AB%AF/">前端</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%AE%89%E5%85%A8/">安全</a>
+    
+    <a href="https://www.cxztt.com/tags/%E5%B7%A5%E5%85%B7/">工具</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%85%A2%E7%94%9F%E6%B4%BB/">慢生活</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%85%E9%9A%9C%E5%AE%9A%E4%BD%8D/">故障定位</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D/">数字签名</a>
+    
+    <a href="https://www.cxztt.com/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%AB%99%E9%95%BF/">站长</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E6%B5%8E%E5%AD%A6/">经济学</a>
+    
+    <a href="https://www.cxztt.com/tags/%E7%BB%8F%E9%AA%8C/">经验</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">读书笔记</a>
+    
+    <a href="https://www.cxztt.com/tags/%E8%BF%90%E7%BB%B4/">运维</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.cxztt.com/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

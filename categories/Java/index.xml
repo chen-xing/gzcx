@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Java on 主人翁</title>
+    <link>https://www.cxztt.com/categories/Java/</link>
+    <description>Recent content in Java on 主人翁</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Wed, 18 Dec 2019 21:55:00 +0800</lastBuildDate><atom:link href="https://www.cxztt.com/categories/Java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>aop联合反射实现mysql与hbase的读写切换</title>
+      <link>https://www.cxztt.com/mysql-hbase-aop.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/mysql-hbase-aop.html</guid>
+      <description>1、能够做的事情 开关控制mysql和hbase的读写切换，实时生效 内置监控可以观察hbase的运行性能（刚切过去，性能稳定性有待考究） 2、核心的代码 package tech.chenxing.aop; import tech.chenxing.conf.RgSystemConfig; import tech.chenxing.util.SpringTool;</description>
+    </item>
+    
+    <item>
+      <title>freemarker语法</title>
+      <link>https://www.cxztt.com/freemarker-base.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/freemarker-base.html</guid>
+      <description>1、基础语法 freemarker语法、freemarker入门、简单高效的模板引擎。 语法 说明 ${expr} 通用插值 #{expr}或#{expr;format} 数字格式化插值</description>
+    </item>
+    
+    <item>
+      <title>网关代理插件zuul的使用</title>
+      <link>https://www.cxztt.com/java-zuul.html</link>
+      <pubDate>Wed, 18 Dec 2019 21:55:00 +0800</pubDate>
+      
+      <guid>https://www.cxztt.com/java-zuul.html</guid>
+      <description>1、引入pom &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.cloud&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-cloud-starter-zuul&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;1.4.0.RELEASE&amp;lt;/version&amp;gt; &amp;lt;exclusions&amp;gt; &amp;lt;exclusion&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-boot-starter-logging&amp;lt;/artifactId&amp;gt; &amp;lt;/exclusion&amp;gt; &amp;lt;/exclusions&amp;gt; &amp;lt;/dependency&amp;gt; 2、开启配置 @EnableZuulProxy // 开启网关功能 public class Application { } 3、自定义配置规则 zuul.routes.products.path = /** zuul.routes.products.url = http://in-testopenapi.esign.cn:9696 zuul.ignored-patterns = /**/notice/**,/doc.html,/swagger-resources,/v2/api-docs,/**/webjars/**,/**/health,/**/shutdown,/**/eurekaRegistration/stop,/**/mappings zuul.routes.products.path 表示拦截的url,/**表示拦截所有的请求，多个</description>
+    </item>
+    
+  </channel>
+</rss>
