@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>故障处理系列-大文件引发OOM | 主人翁</title>
+    <meta property="og:title" content="故障处理系列-大文件引发OOM - 主人翁">
+    <meta property="og:type" content="article">
+        
+    <meta property="article:published_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+        
+    <meta property="article:modified_time" content='2022-03-15T21:55:00&#43;08:00'>
+        
+    <meta name="Keywords" content="工作总结、学习记录、心得体会、超越自我">
+    <meta name="description" content="故障处理系列-大文件引发OOM">
+        
+    <meta name="author" content="Mars">
+    <meta property="og:url" content="https://www.gzcx.net/Troubleshooting-Series-Large-File-Causes-OOM.html">
+    <link rel="shortcut icon" href='/favicon.ico'  type="image/x-icon">
+
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdn.bootcdn.net/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+    
+        <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet">
+    
+    
+    
+    
+        <link rel="stylesheet" href='/css/douban.css'>
+    
+        <link rel="stylesheet" href='/css/other.css'>
+    
+</head>
+
+<body>
+    <header id="header" class="clearfix">
+    <div class="container">
+        <div class="col-group">
+            <div class="site-name ">
+                
+                    <a id="logo" href="https://www.gzcx.net">
+                        主人翁
+                    </a>
+                
+                <p class="description">主人翁何在，你的选择是什么</p>
+            </div>
+            <div>
+                <nav id="nav-menu" class="clearfix">
+                    <a class="current" href="https://www.gzcx.net">首页</a>
+                    
+                    <a  href="https://www.gzcx.net/tools/" title="工具">工具</a>
+                    
+                    <a  href="https://www.gzcx.net/archives/" title="归档">归档</a>
+                    
+                    <a  href="https://www.gzcx.net/about/" title="关于">关于</a>
+                    
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
+
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    <style type="text/css">
+    .post-toc {
+        position: fixed;
+        width: 200px;
+        margin-left: -210px;
+        padding: 5px 10px;
+        font-family: Athelas, STHeiti, Microsoft Yahei, serif;
+        font-size: 12px;
+        border: 1px solid rgba(0, 0, 0, .07);
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.98);
+        background-clip: padding-box;
+        -webkit-box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, .125);
+        word-wrap: break-word;
+        white-space: nowrap;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        z-index: 999;
+        cursor: pointer;
+        max-height: 70%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .post-toc .post-toc-title {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 20px;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .post-toc .post-toc-content {
+        font-size: 15px;
+    }
+
+    .post-toc .post-toc-content>nav>ul {
+        margin: 10px 0;
+    }
+
+    .post-toc .post-toc-content ul {
+        padding-left: 20px;
+        list-style: square;
+        margin: 0.5em;
+        line-height: 1.8em;
+    }
+
+    .post-toc .post-toc-content ul ul {
+        padding-left: 15px;
+        display: none;
+    }
+
+    @media print,
+    screen and (max-width:1057px) {
+        .post-toc {
+            display: none;
+        }
+    }
+</style>
+<div class="post-toc" style="position: absolute; top: 188px;">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1场景还原">1、场景还原</a></li>
+        <li><a href="#2原因分析">2、原因分析</a></li>
+        <li><a href="#3架构考虑">3、架构考虑</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var postToc = $(".post-toc");
+        if (postToc.length) {
+            var leftPos = $("#main").offset().left;
+            if (leftPos < 220) {
+                postToc.css({ "width": leftPos - 10, "margin-left": (0 - leftPos) })
+            }
+
+            var t = postToc.offset().top - 20,
+                a = {
+                    start: {
+                        position: "absolute",
+                        top: t
+                    },
+                    process: {
+                        position: "fixed",
+                        top: 20
+                    },
+                };
+            $(window).scroll(function () {
+                var e = $(window).scrollTop();
+                e < t ? postToc.css(a.start) : postToc.css(a.process)
+            })
+        }
+
+        if ($("#TableOfContents").children().length < 1) {
+            $(".post-toc").remove();
+        }
+    })
+</script>
+    <article class="post">
+        <header>
+            <h1 class="post-title">故障处理系列-大文件引发OOM</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2022年3月15日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='/categories/java'>java</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="clear" style="display: none">
+            <div class="toc-article">
+                <div class="toc-title">文章目录</div>
+            </div>
+        </div>
+        
+        <div class="post-content">
+            <h3 id="1场景还原">1、场景还原</h3>
+<p>系统A是一个需要加载文件到内存中进行处理的系统</p>
+<ul>
+<li>大量的大文件并发请求过来</li>
+<li>收到大量的系统的内存告警</li>
+<li>收到大量的5xx告警，同时从监控可以看到大量的fullGC</li>
+<li>系统oom</li>
+<li>重启，过了3分钟故障再次发生</li>
+</ul>
+<h3 id="2原因分析">2、原因分析</h3>
+<ul>
+<li>大量的大文件请求过来，导致系统中内存迅速消耗殆尽</li>
+<li>内存不够用触发fullGc</li>
+<li>频繁的gc导致系统卡顿，触发5xx</li>
+<li>gc无法维持内存的稳定，oom</li>
+<li>重启无法解决，是因为系统的是通过mq进行驱动的，重启能够是内存恢复，但是mq的重试机制又迅速点燃了这个故障，要想彻底解决，只能是清洗或过滤这一批异常数据</li>
+</ul>
+<p>主要原因是系统层面未对这个大文件的场景进行考虑，超出了系统的处理能力。</p>
+<p>同时也发现了代码层面的一个坑，<strong>feature</strong>的滥用</p>
+<ul>
+<li>get 未设置超时时间</li>
+<li>异常未cancle</li>
+</ul>
+<p>这两个坑将导致系统卡死</p>
+<p>正确的做法是：</p>
+<pre tabindex="0"><code>FutureTask&lt;String&gt; future =...;
+try {
+    	String result = future.get(5000, TimeUnit.MILLISECONDS);
+    	System.out.println(result);
+	} catch (TimeoutException e) {
+		future.cancel(true);
+	}
+
+</code></pre><h3 id="3架构考虑">3、架构考虑</h3>
+<ul>
+<li>消息队列进行削峰限流，直接rpc的话，系统的性能瓶颈将拖垮整个调用链路</li>
+<li>业务打标，大文件、小文件分离处理。</li>
+</ul>
+
+        </div>
+
+        
+<div class="post-archive">
+    <ul class="post-copyright">
+        <li><strong>原文作者：</strong><a rel="author" href="https://www.gzcx.net">Mars</a></li>
+        <li style="word-break:break-all"><strong>原文链接：</strong><a href="https://www.gzcx.net/Troubleshooting-Series-Large-File-Causes-OOM.html">https://www.gzcx.net/Troubleshooting-Series-Large-File-Causes-OOM.html</a></li>
+        <li><strong>版权声明：</strong>本作品采用<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。本站为<a href="https://www.94rg.com/">人工博客</a></li>的子站点。内容均来自主站。
+    </ul>
+</div>
+<br/>
+
+
+
+        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/Java-Online-Troubleshooting-Tips.html">Java线上故障排查技巧</a></li>
+        
+        <li><a href="/Troubleshooting-outline.html">故障处理总纲</a></li>
+        
+        <li><a href="/Troubleshooting-series-tragedy-caused-by-the-bug-of-httpclient-3.x.html">故障处理系列-httpclient 3.x的bug引发的惨案</a></li>
+        
+        <li><a href="/Troubleshooting-Series-Data-Cleaning-and-Blocking-MQ.html">故障处理系列-数据清洗堵塞mq</a></li>
+        
+        <li><a href="/GC-tuning-parameters.html">GC调优参数</a></li>
+        
+    </ul>
+</div>
+
+
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='/tags/experience'>experience</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
+    
+
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "chen-xing/PgHugo"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
+</div>
+
+                    <footer id="footer">
+    <div>
+        &copy; 2022 <a href="https://www.gzcx.net">主人翁 By Mars</a>
+        
+    </div>
+</footer>
+
+
+    
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
+    </script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script><script src="https://cdn.bootcdn.net/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<a id="rocket" href="#top"></a>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
+
+
+
+
+
+
+    <script src='/js/douban.js'></script>
+
+                </div>
+
+                <div id="secondary">
+    <section class="widget">
+        <form id="search" action='https://www.gzcx.net/search/' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+      
+      <input type="text" name="q" maxlength="20" placeholder="Search">
+      <input type="hidden" name="sitesearch" value="https://www.gzcx.net">
+      <button type="submit" class="submit icon-search"></button>
+</form>
+    </section>
+    
+    <section class="widget">
+        <h3 class="widget-title">最近文章</h3>
+<ul class="widget-list">
+    
+    <li>
+        <a href="https://www.gzcx.net/linux-base-command.html" title="linux常用知识">linux常用知识</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/GC-tuning-parameters.html" title="GC调优参数">GC调优参数</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/1870.html" title="idea jvm调优">idea jvm调优</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/Invalid-solution-to-the-shortcut-key-%28ctr&#43;shift&#43;F%29-for-all-project-text-search-in-IDEA.html" title="IDEA中全项目文本查找快捷键（ctr&#43;shift&#43;F）无效解决办法">IDEA中全项目文本查找快捷键（ctr&#43;shift&#43;F）无效解决办法</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/1867.html" title="idea代码模板如何设置">idea代码模板如何设置</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/idea-shortcuts.html" title="idea快捷键">idea快捷键</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/java-memory-optimization.html" title="java内存优化的常见方法">java内存优化的常见方法</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/Java-Online-Troubleshooting-Tips.html" title="Java线上故障排查技巧">Java线上故障排查技巧</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/java-juc.html" title="juc介绍">juc介绍</a>
+    </li>
+    
+    <li>
+        <a href="https://www.gzcx.net/Summary-of-jvm-knowledge-points.html" title="jvm 知识点汇总">jvm 知识点汇总</a>
+    </li>
+    
+</ul>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title" style="color:red">福利派送</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a href="https://www.aliyun.com/minisite/goods?userCode=jdg9oj97&amp;share_source=copy_link" title="pan gun running" target="_blank" style="color:red">
+                
+                    <img src="/images/banner.png">
+                
+            </a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/categories/'>分类</a></h3>
+<ul class="widget-list">
+    
+    <li><a href="https://www.gzcx.net/categories/java/">java (11)</a></li>
+    
+    <li><a href="https://www.gzcx.net/categories/linux/">linux (1)</a></li>
+    
+    <li><a href="https://www.gzcx.net/categories/tool/">tool (14)</a></li>
+    
+</ul>
+    </section>
+
+    <section class="widget">
+        <h3 class="widget-title"><a href='/tags/'>标签</a></h3>
+<div class="tagcloud">
+    
+    <a href="https://www.gzcx.net/tags/base/">base</a>
+    
+    <a href="https://www.gzcx.net/tags/base-command/">base command</a>
+    
+    <a href="https://www.gzcx.net/tags/experience/">experience</a>
+    
+    <a href="https://www.gzcx.net/tags/git/">git</a>
+    
+    <a href="https://www.gzcx.net/tags/idea/">idea</a>
+    
+    <a href="https://www.gzcx.net/tags/java/">java</a>
+    
+    <a href="https://www.gzcx.net/tags/maven/">maven</a>
+    
+</div>
+    </section>
+
+    
+<section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <ul class="widget-list">
+        
+        <li>
+            <a target="_blank" href="https://www.94rg.com/" title="人工博客">人工博客</a>
+        </li>
+        
+        <li>
+            <a target="_blank" href="https://www.chenzhuofan.top" title="程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺">程序员导航网</a>
+        </li>
+        
+    </ul>
+</section>
+
+
+    <section class="widget">
+        <h3 class="widget-title">其它</h3>
+        <ul class="widget-list">
+            <li><a href="https://www.gzcx.net/index.xml">文章 RSS</a></li>
+        </ul>
+    </section>
+</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
