@@ -20,7 +20,7 @@ disqusShortname = ""
 
 [params]
   author = "Mars"
-  subtitle = "主人翁何在，你的选择是什么"
+  subtitle = "主人翁何在？你的选择是什么？此时此刻就是最好的时间！"
   keywords = "工作总结、学习记录、心得体会、超越自我"
   description = "关注陈星，一起进步。不论何时何地，你都有选择的权利。此时此刻就是最好的时间。明确目标，专注效率，遇见更好的自己"
   busuanzi = false #启用不算子网页统计

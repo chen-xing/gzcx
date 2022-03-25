@@ -4,7 +4,7 @@ description="idea jvm调优"
 tags=["idea"]
 categories=["tool"]
 date="2022-03-15T21:55:00+08:00" 
-url="1870.html"
+url="idea-jvm-tuning.html"
 toc=true
 +++
 ## 1、背景

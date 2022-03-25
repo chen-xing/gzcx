@@ -4,7 +4,7 @@ description="idea代码模板如何设置"
 tags=["idea"]
 categories=["tool"]
 date="2022-03-15T21:55:00+08:00" 
-url="1867.html"
+url="how-to-set-the-idea-codeTemplate.html"
 toc=true
 +++
 ## 1、模板分类
