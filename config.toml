@@ -72,7 +72,7 @@ disqusShortname = ""
 
 [params.image_cdn]
     enable = true
-    Host = "https://cdn.jsdelivr.net/gh/user/chen-xing.github.io"	
+    Host = "https://fastly.jsdelivr.net/gh/user/chen-xing.github.io"	
 
 ## 配置代码高亮
 [markup]

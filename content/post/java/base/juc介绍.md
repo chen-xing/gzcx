@@ -314,8 +314,8 @@ private static volatile  int num = 0;
 + AtomicStampedReference（解决ABA问题）
 
 
-![atomic系列](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210803160142608.png)
-![cas不会死循环](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210803161829568.png)
+![atomic系列](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210803160142608.png)
+![cas不会死循环](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210803161829568.png)
 ![image-20210811094956275](https://oss.94rg.com/figure_bed/20210811095005.png-94rg002)
 
 ## 7、参考

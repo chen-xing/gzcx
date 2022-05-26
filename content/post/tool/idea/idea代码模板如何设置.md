@@ -14,7 +14,7 @@ toc=true
 
 ## 2、File and Code template
 
-![idea代码模板设置](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210728194743558.png)
+![idea代码模板设置](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210728194743558.png)
 
 ```
 /**
@@ -41,7 +41,7 @@ toc=true
 
 但这次主要介绍的是方法级别的注释怎么弄
 
-![idea方法级别的模版如何设置](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210728195657076.png)
+![idea方法级别的模版如何设置](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210728195657076.png)
 
 
 

@@ -13,7 +13,7 @@ toc=true
 
 同时例如 jstack、jmap 等工具也是不囿于一个方面的问题的，基本上出问题就是 df、free、top 三连，然后依次 jstack、jmap 伺候，具体问题具体分析即可。
 
-![生产故障](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210123160752143.png)
+![生产故障](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210123160752143.png)
 
 ### 2、**CPU**
 
@@ -27,15 +27,15 @@ toc=true
 
 **接着用top -H -p pid来找到 CPU 使用率比较高的一些线程：**
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155246.png)](https://s2.51cto.com/oss/202010/20/b1b381d72e6874fb9e7e715dd1a3afcd.png-wh_651x-s_3969226399.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155246.png)](https://s2.51cto.com/oss/202010/20/b1b381d72e6874fb9e7e715dd1a3afcd.png-wh_651x-s_3969226399.png)
 
 然后将占用最高的 pid 转换为 16 进制 printf '%x\n' pid 得到 nid：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155305.png)](https://s2.51cto.com/oss/202010/20/f6400a7d9dca392c55ca8c3bf252cf90.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155305.png)](https://s2.51cto.com/oss/202010/20/f6400a7d9dca392c55ca8c3bf252cf90.png)
 
 接着直接在 jstack 中找到相应的堆栈信息 jstack pid |grep 'nid' -C5 –color：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155455.png)](https://s2.51cto.com/oss/202010/20/e2f9b9292bacaa035bd6ad3fece2383f.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155455.png)](https://s2.51cto.com/oss/202010/20/e2f9b9292bacaa035bd6ad3fece2383f.png)
 
 可以看到我们已经找到了 nid 为 0x42 的堆栈信息，接着只要仔细分析一番即可。
 
@@ -43,7 +43,7 @@ toc=true
 
 我们可以使用命令 cat jstack.log | grep "java.lang.Thread.State" | sort -nr | uniq -c 来对 jstack 的状态有一个整体的把握，如果 WAITING 之类的特别多，那么多半是有问题啦。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155519.png)](https://s3.51cto.com/oss/202010/20/da8fadda7a4071848c4733b5534a15a2.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155519.png)](https://s3.51cto.com/oss/202010/20/da8fadda7a4071848c4733b5534a15a2.png)
 
 **②频繁 GC**
 
@@ -55,45 +55,45 @@ YGC/YGT、FGC/FGCT、GCT 则代表 YoungGc、FullGc 的耗时和次数以及总�
 
 如果看到 GC 比较频繁，再针对 GC 方面做进一步分析，具体可以参考一下 GC章节的描述。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155648.png)](https://s5.51cto.com/oss/202010/20/b5f700c8d20f521e219fac4d58a5f52a.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155648.png)](https://s5.51cto.com/oss/202010/20/b5f700c8d20f521e219fac4d58a5f52a.png)
 
 **③上下文切换**
 
 针对频繁上下文问题，我们可以使用 vmstat 命令来进行查看：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155709.png)](https://s4.51cto.com/oss/202010/20/9d6495a14bcbbd43d5162b6e94a28fb5.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155709.png)](https://s4.51cto.com/oss/202010/20/9d6495a14bcbbd43d5162b6e94a28fb5.png)
 
 cs（context switch）一列则代表了上下文切换的次数。如果我们希望对特定的 pid 进行监控那么可以使用 pidstat -w pid 命令，cswch 和 nvcswch 表示自愿及非自愿切换。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155656.png)](https://s4.51cto.com/oss/202010/20/2e7a2fe53bb16a2b15fbac2420896746.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155656.png)](https://s4.51cto.com/oss/202010/20/2e7a2fe53bb16a2b15fbac2420896746.png)
 
 **磁盘**
 
 磁盘问题和 CPU 一样是属于比较基础的。首先是磁盘空间方面，我们直接使用 df -hl 来查看文件系统状态：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155715.png)](https://s5.51cto.com/oss/202010/20/e887a3e2ed739407caad6ca472ad49d5.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155715.png)](https://s5.51cto.com/oss/202010/20/e887a3e2ed739407caad6ca472ad49d5.png)
 
 更多时候，磁盘问题还是性能上的问题。我们可以通过 iostatiostat -d -k -x 来进行分析：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155721.png)](https://s3.51cto.com/oss/202010/20/bb967007c150c021ac45ceef3eb40ce0.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155721.png)](https://s3.51cto.com/oss/202010/20/bb967007c150c021ac45ceef3eb40ce0.png)
 
 最后一列 %util 可以看到每块磁盘写入的程度，而 rrqpm/s 以及 wrqm/s 分别表示读写速度，一般就能帮助定位到具体哪块磁盘出现问题了。
 
 另外我们还需要知道是哪个进程在进行读写，一般来说开发自己心里有数，或者用 iotop 命令来进行定位文件读写的来源。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155727.png)](https://s5.51cto.com/oss/202010/20/358dbce3c3dbca3d746d2e52901ace1f.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155727.png)](https://s5.51cto.com/oss/202010/20/358dbce3c3dbca3d746d2e52901ace1f.png)
 
 不过这边拿到的是 tid，我们要转换成 pid，可以通过 readlink 来找到 pidreadlink -f /proc/*/task/tid/../..。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155736.png)](https://s3.51cto.com/oss/202010/20/f540140ce47c4f57e038cf3b43599c8a.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155736.png)](https://s3.51cto.com/oss/202010/20/f540140ce47c4f57e038cf3b43599c8a.png)
 
 找到 pid 之后就可以看这个进程具体的读写情况 cat /proc/pid/io：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155749.png)](https://s6.51cto.com/oss/202010/20/a72649492c1ec92b8bb17cf96d7c958b.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155749.png)](https://s6.51cto.com/oss/202010/20/a72649492c1ec92b8bb17cf96d7c958b.png)
 
 我们还可以通过 lsof 命令来确定具体的文件读写情况 lsof -p pid：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155758.png)](https://s6.51cto.com/oss/202010/20/d5803f0bcd100feebe201d2373124a4d.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155758.png)](https://s6.51cto.com/oss/202010/20/d5803f0bcd100feebe201d2373124a4d.png)
 
 ### **3、内存**
 
@@ -101,7 +101,7 @@ cs（context switch）一列则代表了上下文切换的次数。如果我们�
 
 **一般来讲，我们会先用 free 命令先来检查一发内存的各种情况：**
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155810.png)](https://s4.51cto.com/oss/202010/20/99545a013b9882821ea5aeef599979b7.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155810.png)](https://s4.51cto.com/oss/202010/20/99545a013b9882821ea5aeef599979b7.png)
 
 **堆内内存**
 
@@ -119,7 +119,7 @@ cs（context switch）一列则代表了上下文切换的次数。如果我们�
 
 另外也可以在系统层面，可以通过修改 /etc/security/limits.confnofile 和 nproc 来增大 os 对线程的限制。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155816.png)](https://s2.51cto.com/oss/202010/20/4577a5b17986225cd09399a24c75087f.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155816.png)](https://s2.51cto.com/oss/202010/20/4577a5b17986225cd09399a24c75087f.png)
 
 **Exception in thread "main" java.lang.OutOfMemoryError: Java heap space**
 
@@ -143,7 +143,7 @@ cs（context switch）一列则代表了上下文切换的次数。如果我们�
 
 上述关于 OOM 和 Stack Overflow 的代码排查方面，我们一般使用 JMAPjmap -dump:format=b,file=filename pid 来导出 dump 文件：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155823.png)](https://s3.51cto.com/oss/202010/20/7929079f8600069e45d59580697a8229.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155823.png)](https://s3.51cto.com/oss/202010/20/7929079f8600069e45d59580697a8229.png)
 
 通过 mat（Eclipse Memory Analysis Tools）导入 dump 文件进行分析，内存泄漏问题一般我们直接选 Leak Suspects 即可，mat 给出了内存泄漏的建议。
 
@@ -151,7 +151,7 @@ cs（context switch）一列则代表了上下文切换的次数。如果我们�
 
 除此之外就是选择 Histogram 类概览来自己慢慢分析，大家可以搜搜 mat 的相关教程。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155828.png)](https://s3.51cto.com/oss/202010/20/3affe78b20af3e457083a054e912866c.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155828.png)](https://s3.51cto.com/oss/202010/20/3affe78b20af3e457083a054e912866c.png)
 
 日常开发中，代码产生内存泄漏是比较常见的事，并且比较隐蔽，需要开发者更加关注细节。
 
@@ -167,11 +167,11 @@ GC 问题除了影响 CPU 也会影响内存，排查思路也是一致的。一
 
 除了 jstack 细细分析 dump 文件外，我们一般先会看下总体线程，通过 pstreee -p pid |wc -l。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155839.png)](https://s3.51cto.com/oss/202010/20/be90c0c342ab22877ae9daaffc3fadfc.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155839.png)](https://s3.51cto.com/oss/202010/20/be90c0c342ab22877ae9daaffc3fadfc.png)
 
 或者直接通过查看 /proc/pid/task 的数量即为线程数量。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155845.png)](https://s3.51cto.com/oss/202010/20/0f926526639a1db092bdfe873ca3156b.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155845.png)](https://s3.51cto.com/oss/202010/20/0f926526639a1db092bdfe873ca3156b.png)
 
 **堆外内存**
 
@@ -183,11 +183,11 @@ GC 问题除了影响 CPU 也会影响内存，排查思路也是一致的。一
 
 这边可以再一段时间后再跑一次命令看看内存增长情况，或者和正常机器比较可疑的内存段在哪里。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155852.png)](https://s6.51cto.com/oss/202010/20/6f49c0eeb6784f9947349f26ce45fe9e.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155852.png)](https://s6.51cto.com/oss/202010/20/6f49c0eeb6784f9947349f26ce45fe9e.png)
 
 我们如果确定有可疑的内存端，需要通过 gdb 来分析 gdb --batch --pid {pid} -ex "dump memory filename.dump {内存起始地址} {内存起始地址+内存块大小}"。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155859.png)](https://s4.51cto.com/oss/202010/20/c8c52d36fc419940a89f94146213074d.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155859.png)](https://s4.51cto.com/oss/202010/20/c8c52d36fc419940a89f94146213074d.png)
 
 获取 dump 文件后可用 heaxdump 进行查看 hexdump -C filename | less，不过大多数看到的都是二进制乱码。
 
@@ -197,25 +197,25 @@ NMT 是 Java7U40 引入的 HotSpot 新特性，配合 jcmd 命令我们就可以
 
 一般对于堆外内存缓慢增长直到爆炸的情况来说，可以先设一个基线 jcmd pid VM.native_memory baseline。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155904.png)](https://s6.51cto.com/oss/202010/20/e1c52390f9c5e23dfbeaa1075381f4a8.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155904.png)](https://s6.51cto.com/oss/202010/20/e1c52390f9c5e23dfbeaa1075381f4a8.png)
 
 然后等放一段时间后再去看看内存增长的情况，通过 jcmd pid VM.native_memory detail.diff(summary.diff) 做一下 summary 或者 detail 级别的 diff。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155941.png)](https://s5.51cto.com/oss/202010/20/1ac1b527ebb7c1177b25e96020f0361f.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155941.png)](https://s5.51cto.com/oss/202010/20/1ac1b527ebb7c1177b25e96020f0361f.png)
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155945.png)](https://s5.51cto.com/oss/202010/20/031294d12e2a862ee9b0e82652861e9c.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155945.png)](https://s5.51cto.com/oss/202010/20/031294d12e2a862ee9b0e82652861e9c.png)
 
 可以看到 jcmd 分析出来的内存十分详细，包括堆内、线程以及 GC（所以上述其他内存异常其实都可以用 nmt 来分析），这边堆外内存我们重点关注 Internal 的内存增长，如果增长十分明显的话那就是有问题了。
 
 detail 级别的话还会有具体内存段的增长情况，如下图：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155951.png)](https://s4.51cto.com/oss/202010/20/4e7cef0b5857e8c7d8af143b86539801.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155951.png)](https://s4.51cto.com/oss/202010/20/4e7cef0b5857e8c7d8af143b86539801.png)
 
 此外在系统层面，我们还可以使用 strace 命令来监控内存分配 strace -f -e "brk,mmap,munmap" -p pid。
 
 **这边内存分配信息主要包括了 pid 和内存地址：**
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160000.jpeg)](https://s6.51cto.com/oss/202010/20/0ca86379a5e8c4efd8d6dc74550f4aaf.jpg)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160000.jpeg)](https://s6.51cto.com/oss/202010/20/0ca86379a5e8c4efd8d6dc74550f4aaf.jpg)
 
 不过其实上面那些操作也很难定位到具体的问题点，关键还是要看错误日志栈，找到可疑的对象，搞清楚它的回收机制，然后去分析对应的对象。
 
@@ -255,7 +255,7 @@ Object Copy 则需要关注对象生存周期。而且耗时分析它需要横�
 
 比如说图中的 Root Scanning 和正常时间段比增长较多，那就是起的线程太多了。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160007.png)](https://s5.51cto.com/oss/202010/20/1864c717decec3133c1ce5870fff01f3.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160007.png)](https://s5.51cto.com/oss/202010/20/1864c717decec3133c1ce5870fff01f3.png)
 
 **③触发 Full GC**
 
@@ -316,7 +316,7 @@ jinfo -flag +HeapDumpBeforeFullGC pid   jinfo -flag +HeapDumpAfterFullGC pid
 
 TCP 队列溢出是个相对底层的错误，它可能会造成超时、RST 等更表层的错误。因此错误也更隐蔽，所以我们单独说一说。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160015.jpeg)](https://s5.51cto.com/oss/202010/20/f67931f72580f50025c7abe1a2e97130.jpg)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160015.jpeg)](https://s5.51cto.com/oss/202010/20/f67931f72580f50025c7abe1a2e97130.jpg)
 
 **如上图所示，这里有两个队列：**
 
@@ -335,13 +335,13 @@ tcp_abort_on_overflow 1 则表示第三步的时候如果全连接队列满了�
 
 netstat 命令，执行 netstat -s | egrep "listen|LISTEN"：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160022.jpeg)](https://s5.51cto.com/oss/202010/20/00a3e6b3b58fdce59d019971e491a382.jpg)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160022.jpeg)](https://s5.51cto.com/oss/202010/20/00a3e6b3b58fdce59d019971e491a382.jpg)
 
 如上图所示，overflowed 表示全连接队列溢出的次数，sockets dropped 表示半连接队列溢出的次数。
 
 **ss 命令，执行 ss -lnt：**
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160030.jpeg)](https://s2.51cto.com/oss/202010/20/09e67a0f66e30e40e645591da9f90fbc.jpg)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160030.jpeg)](https://s2.51cto.com/oss/202010/20/09e67a0f66e30e40e645591da9f90fbc.jpg)
 
 上面看到 Send-Q 表示第三列的 Listen 端口上的全连接队列最大为 5，第一列 Recv-Q 为全连接队列当前使用了多少。
 
@@ -383,11 +383,11 @@ RST 包表示连接重置，用于关闭一些无用的连接，通常表示异�
 
 tcpdump -i en0 tcp -w xxx.cap，en0 表示监听的网卡：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160040.jpeg)](https://s5.51cto.com/oss/202010/20/a18ff5639328585d6b986e62fefa205c.jpg)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160040.jpeg)](https://s5.51cto.com/oss/202010/20/a18ff5639328585d6b986e62fefa205c.jpg)
 
 接下来我们通过 wireshark 打开抓到的包，可能就能看到如下图所示，红色的就表示 RST 包了。
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160047.jpeg)](https://s2.51cto.com/oss/202010/20/3dc563ebbf861f29fff988b1d9b60bad.jpg)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160047.jpeg)](https://s2.51cto.com/oss/202010/20/3dc563ebbf861f29fff988b1d9b60bad.jpg)
 
 **④TIME_WAIT 和 CLOSE_WAIT**
 
@@ -397,7 +397,7 @@ TIME_WAIT 和 CLOSE_WAIT 是啥意思相信大家都知道。
 
 用 ss 命令会更快 ss -ant | awk '{++S[$1]} END {for(a in S) print a, S[a]}'：
 
-[![img](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160148.png)](https://s4.51cto.com/oss/202010/20/0b179ee3d9085eb7a22fa09a278816c3.png)
+[![img](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160148.png)](https://s4.51cto.com/oss/202010/20/0b179ee3d9085eb7a22fa09a278816c3.png)
 
 TIME_WAIT：time_wait 的存在一是为了丢失的数据包被后面连接复用，二是为了在 2MSL 的时间范围内正常关闭连接。
 

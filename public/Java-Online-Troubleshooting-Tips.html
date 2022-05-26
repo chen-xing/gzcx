@@ -216,8 +216,8 @@
 <p>线上故障主要会包括 CPU、磁盘、内存以及网络问题，而大多数故障可能会包含不止一个层面的问题，所以进行排查时候尽量四个方面依次排查一遍。</p>
 <p>同时例如 jstack、jmap 等工具也是不囿于一个方面的问题的，基本上出问题就是 df、free、top 三连，然后依次 jstack、jmap 伺候，具体问题具体分析即可。</p>
 <p>
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210123160752143.png">
-            <img class="mx-auto" alt="生产故障" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210123160752143.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210123160752143.png">
+            <img class="mx-auto" alt="生产故障" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210123160752143.png" />
         </a>
     </p>
 <h3 id="2cpu">2、<strong>CPU</strong></h3>
@@ -227,28 +227,28 @@
 <p>我们先用 ps 命令找到对应进程的 pid（如果你有好几个目标进程，可以先用 top 看一下哪个占用比较高）。</p>
 <p><strong>接着用top -H -p pid来找到 CPU 使用率比较高的一些线程：</strong></p>
 <p><a href="https://s2.51cto.com/oss/202010/20/b1b381d72e6874fb9e7e715dd1a3afcd.png-wh_651x-s_3969226399.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155246.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155246.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155246.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155246.png" />
         </a>
     </a></p>
 <p>然后将占用最高的 pid 转换为 16 进制 printf &lsquo;%x\n&rsquo; pid 得到 nid：</p>
 <p><a href="https://s2.51cto.com/oss/202010/20/f6400a7d9dca392c55ca8c3bf252cf90.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155305.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155305.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155305.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155305.png" />
         </a>
     </a></p>
 <p>接着直接在 jstack 中找到相应的堆栈信息 jstack pid |grep &lsquo;nid&rsquo; -C5 –color：</p>
 <p><a href="https://s2.51cto.com/oss/202010/20/e2f9b9292bacaa035bd6ad3fece2383f.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155455.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155455.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155455.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155455.png" />
         </a>
     </a></p>
 <p>可以看到我们已经找到了 nid 为 0x42 的堆栈信息，接着只要仔细分析一番即可。</p>
 <p>当然更常见的是我们对整个 jstack 文件进行分析，通常我们会比较关注 WAITING 和 TIMED_WAITING 的部分，BLOCKED 就不用说了。</p>
 <p>我们可以使用命令 cat jstack.log | grep &ldquo;java.lang.Thread.State&rdquo; | sort -nr | uniq -c 来对 jstack 的状态有一个整体的把握，如果 WAITING 之类的特别多，那么多半是有问题啦。</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/da8fadda7a4071848c4733b5534a15a2.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155519.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155519.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155519.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155519.png" />
         </a>
     </a></p>
 <p><strong>②频繁 GC</strong></p>
@@ -257,67 +257,67 @@
 <p>YGC/YGT、FGC/FGCT、GCT 则代表 YoungGc、FullGc 的耗时和次数以及总耗时。</p>
 <p>如果看到 GC 比较频繁，再针对 GC 方面做进一步分析，具体可以参考一下 GC章节的描述。</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/b5f700c8d20f521e219fac4d58a5f52a.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155648.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155648.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155648.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155648.png" />
         </a>
     </a></p>
 <p><strong>③上下文切换</strong></p>
 <p>针对频繁上下文问题，我们可以使用 vmstat 命令来进行查看：</p>
 <p><a href="https://s4.51cto.com/oss/202010/20/9d6495a14bcbbd43d5162b6e94a28fb5.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155709.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155709.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155709.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155709.png" />
         </a>
     </a></p>
 <p>cs（context switch）一列则代表了上下文切换的次数。如果我们希望对特定的 pid 进行监控那么可以使用 pidstat -w pid 命令，cswch 和 nvcswch 表示自愿及非自愿切换。</p>
 <p><a href="https://s4.51cto.com/oss/202010/20/2e7a2fe53bb16a2b15fbac2420896746.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155656.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155656.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155656.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155656.png" />
         </a>
     </a></p>
 <p><strong>磁盘</strong></p>
 <p>磁盘问题和 CPU 一样是属于比较基础的。首先是磁盘空间方面，我们直接使用 df -hl 来查看文件系统状态：</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/e887a3e2ed739407caad6ca472ad49d5.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155715.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155715.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155715.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155715.png" />
         </a>
     </a></p>
 <p>更多时候，磁盘问题还是性能上的问题。我们可以通过 iostatiostat -d -k -x 来进行分析：</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/bb967007c150c021ac45ceef3eb40ce0.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155721.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155721.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155721.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155721.png" />
         </a>
     </a></p>
 <p>最后一列 %util 可以看到每块磁盘写入的程度，而 rrqpm/s 以及 wrqm/s 分别表示读写速度，一般就能帮助定位到具体哪块磁盘出现问题了。</p>
 <p>另外我们还需要知道是哪个进程在进行读写，一般来说开发自己心里有数，或者用 iotop 命令来进行定位文件读写的来源。</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/358dbce3c3dbca3d746d2e52901ace1f.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155727.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155727.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155727.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155727.png" />
         </a>
     </a></p>
 <p>不过这边拿到的是 tid，我们要转换成 pid，可以通过 readlink 来找到 pidreadlink -f /proc/*/task/tid/../..。</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/f540140ce47c4f57e038cf3b43599c8a.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155736.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155736.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155736.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155736.png" />
         </a>
     </a></p>
 <p>找到 pid 之后就可以看这个进程具体的读写情况 cat /proc/pid/io：</p>
 <p><a href="https://s6.51cto.com/oss/202010/20/a72649492c1ec92b8bb17cf96d7c958b.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155749.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155749.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155749.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155749.png" />
         </a>
     </a></p>
 <p>我们还可以通过 lsof 命令来确定具体的文件读写情况 lsof -p pid：</p>
 <p><a href="https://s6.51cto.com/oss/202010/20/d5803f0bcd100feebe201d2373124a4d.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155758.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155758.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155758.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155758.png" />
         </a>
     </a></p>
 <h3 id="3内存"><strong>3、内存</strong></h3>
 <p>内存问题排查起来相对比 CPU 麻烦一些，场景也比较多。主要包括 OOM、GC 问题和堆外内存。</p>
 <p><strong>一般来讲，我们会先用 free 命令先来检查一发内存的各种情况：</strong></p>
 <p><a href="https://s4.51cto.com/oss/202010/20/99545a013b9882821ea5aeef599979b7.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155810.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155810.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155810.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155810.png" />
         </a>
     </a></p>
 <p><strong>堆内内存</strong></p>
@@ -329,8 +329,8 @@
 <p>如果一切都正常，JVM 方面可以通过指定 Xss 来减少单个 thread stack 的大小。</p>
 <p>另外也可以在系统层面，可以通过修改 /etc/security/limits.confnofile 和 nproc 来增大 os 对线程的限制。</p>
 <p><a href="https://s2.51cto.com/oss/202010/20/4577a5b17986225cd09399a24c75087f.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155816.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155816.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155816.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155816.png" />
         </a>
     </a></p>
 <p><strong>Exception in thread &ldquo;main&rdquo; java.lang.OutOfMemoryError: Java heap space</strong></p>
@@ -345,16 +345,16 @@
 <p><strong>③使用 JMAP 定位代码内存泄漏</strong></p>
 <p>上述关于 OOM 和 Stack Overflow 的代码排查方面，我们一般使用 JMAPjmap -dump:format=b,file=filename pid 来导出 dump 文件：</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/7929079f8600069e45d59580697a8229.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155823.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155823.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155823.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155823.png" />
         </a>
     </a></p>
 <p>通过 mat（Eclipse Memory Analysis Tools）导入 dump 文件进行分析，内存泄漏问题一般我们直接选 Leak Suspects 即可，mat 给出了内存泄漏的建议。</p>
 <p>另外也可以选择 Top Consumers 来查看最大对象报告。和线程相关的问题可以选择 thread overview 进行分析。</p>
 <p>除此之外就是选择 Histogram 类概览来自己慢慢分析，大家可以搜搜 mat 的相关教程。</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/3affe78b20af3e457083a054e912866c.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155828.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155828.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155828.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155828.png" />
         </a>
     </a></p>
 <p>日常开发中，代码产生内存泄漏是比较常见的事，并且比较隐蔽，需要开发者更加关注细节。</p>
@@ -365,14 +365,14 @@
 <p>线程的话太多而且不被及时 GC 也会引发 OOM，大部分就是之前说的 unable to create new native thread。</p>
 <p>除了 jstack 细细分析 dump 文件外，我们一般先会看下总体线程，通过 pstreee -p pid |wc -l。</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/be90c0c342ab22877ae9daaffc3fadfc.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155839.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155839.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155839.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155839.png" />
         </a>
     </a></p>
 <p>或者直接通过查看 /proc/pid/task 的数量即为线程数量。</p>
 <p><a href="https://s3.51cto.com/oss/202010/20/0f926526639a1db092bdfe873ca3156b.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155845.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155845.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155845.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155845.png" />
         </a>
     </a></p>
 <p><strong>堆外内存</strong></p>
@@ -381,14 +381,14 @@
 <p>堆外内存溢出往往是和 NIO 的使用相关，一般我们先通过 pmap 来查看下进程占用的内存情况 pmap -x pid | sort -rn -k3 | head -30，这段意思是查看对应 pid 倒序前 30 大的内存段。</p>
 <p>这边可以再一段时间后再跑一次命令看看内存增长情况，或者和正常机器比较可疑的内存段在哪里。</p>
 <p><a href="https://s6.51cto.com/oss/202010/20/6f49c0eeb6784f9947349f26ce45fe9e.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155852.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155852.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155852.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155852.png" />
         </a>
     </a></p>
 <p>我们如果确定有可疑的内存端，需要通过 gdb 来分析 gdb &ndash;batch &ndash;pid {pid} -ex &ldquo;dump memory filename.dump {内存起始地址} {内存起始地址+内存块大小}&quot;。</p>
 <p><a href="https://s4.51cto.com/oss/202010/20/c8c52d36fc419940a89f94146213074d.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155859.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155859.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155859.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155859.png" />
         </a>
     </a></p>
 <p>获取 dump 文件后可用 heaxdump 进行查看 hexdump -C filename | less，不过大多数看到的都是二进制乱码。</p>
@@ -396,33 +396,33 @@
 <p>需要在启动参数中加入 -XX:NativeMemoryTracking=summary 或者 -XX:NativeMemoryTracking=detail，会有略微性能损耗。</p>
 <p>一般对于堆外内存缓慢增长直到爆炸的情况来说，可以先设一个基线 jcmd pid VM.native_memory baseline。</p>
 <p><a href="https://s6.51cto.com/oss/202010/20/e1c52390f9c5e23dfbeaa1075381f4a8.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155904.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155904.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155904.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155904.png" />
         </a>
     </a></p>
 <p>然后等放一段时间后再去看看内存增长的情况，通过 jcmd pid VM.native_memory detail.diff(summary.diff) 做一下 summary 或者 detail 级别的 diff。</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/1ac1b527ebb7c1177b25e96020f0361f.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155941.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155941.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155941.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155941.png" />
         </a>
     </a></p>
 <p><a href="https://s5.51cto.com/oss/202010/20/031294d12e2a862ee9b0e82652861e9c.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155945.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155945.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155945.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155945.png" />
         </a>
     </a></p>
 <p>可以看到 jcmd 分析出来的内存十分详细，包括堆内、线程以及 GC（所以上述其他内存异常其实都可以用 nmt 来分析），这边堆外内存我们重点关注 Internal 的内存增长，如果增长十分明显的话那就是有问题了。</p>
 <p>detail 级别的话还会有具体内存段的增长情况，如下图：</p>
 <p><a href="https://s4.51cto.com/oss/202010/20/4e7cef0b5857e8c7d8af143b86539801.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155951.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155951.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155951.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123155951.png" />
         </a>
     </a></p>
 <p>此外在系统层面，我们还可以使用 strace 命令来监控内存分配 strace -f -e &ldquo;brk,mmap,munmap&rdquo; -p pid。</p>
 <p><strong>这边内存分配信息主要包括了 pid 和内存地址：</strong></p>
 <p><a href="https://s6.51cto.com/oss/202010/20/0ca86379a5e8c4efd8d6dc74550f4aaf.jpg">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160000.jpeg">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160000.jpeg" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160000.jpeg">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160000.jpeg" />
         </a>
     </a></p>
 <p>不过其实上面那些操作也很难定位到具体的问题点，关键还是要看错误日志栈，找到可疑的对象，搞清楚它的回收机制，然后去分析对应的对象。</p>
@@ -445,8 +445,8 @@
 <p>Object Copy 则需要关注对象生存周期。而且耗时分析它需要横向比较，就是和其他项目或者正常时间段的耗时比较。</p>
 <p>比如说图中的 Root Scanning 和正常时间段比增长较多，那就是起的线程太多了。</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/1864c717decec3133c1ce5870fff01f3.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160007.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160007.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160007.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160007.png" />
         </a>
     </a></p>
 <p><strong>③触发 Full GC</strong></p>
@@ -489,8 +489,8 @@
 <p><strong>②TCP 队列溢出</strong></p>
 <p>TCP 队列溢出是个相对底层的错误，它可能会造成超时、RST 等更表层的错误。因此错误也更隐蔽，所以我们单独说一说。</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/f67931f72580f50025c7abe1a2e97130.jpg">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160015.jpeg">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160015.jpeg" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160015.jpeg">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160015.jpeg" />
         </a>
     </a></p>
 <p><strong>如上图所示，这里有两个队列：</strong></p>
@@ -505,15 +505,15 @@
 <p>那么在实际开发中，我们怎么能快速定位到 TCP 队列溢出呢？</p>
 <p>netstat 命令，执行 netstat -s | egrep &ldquo;listen|LISTEN&rdquo;：</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/00a3e6b3b58fdce59d019971e491a382.jpg">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160022.jpeg">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160022.jpeg" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160022.jpeg">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160022.jpeg" />
         </a>
     </a></p>
 <p>如上图所示，overflowed 表示全连接队列溢出的次数，sockets dropped 表示半连接队列溢出的次数。</p>
 <p><strong>ss 命令，执行 ss -lnt：</strong></p>
 <p><a href="https://s2.51cto.com/oss/202010/20/09e67a0f66e30e40e645591da9f90fbc.jpg">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160030.jpeg">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160030.jpeg" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160030.jpeg">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160030.jpeg" />
         </a>
     </a></p>
 <p>上面看到 Send-Q 表示第三列的 Listen 端口上的全连接队列最大为 5，第一列 Recv-Q 为全连接队列当前使用了多少。</p>
@@ -537,14 +537,14 @@
 <p>我们在排查故障时候怎么确定有 RST 包的存在呢？当然是使用 tcpdump 命令进行抓包，并使用 wireshark 进行简单分析了。</p>
 <p>tcpdump -i en0 tcp -w xxx.cap，en0 表示监听的网卡：</p>
 <p><a href="https://s5.51cto.com/oss/202010/20/a18ff5639328585d6b986e62fefa205c.jpg">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160040.jpeg">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160040.jpeg" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160040.jpeg">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160040.jpeg" />
         </a>
     </a></p>
 <p>接下来我们通过 wireshark 打开抓到的包，可能就能看到如下图所示，红色的就表示 RST 包了。</p>
 <p><a href="https://s2.51cto.com/oss/202010/20/3dc563ebbf861f29fff988b1d9b60bad.jpg">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160047.jpeg">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160047.jpeg" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160047.jpeg">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160047.jpeg" />
         </a>
     </a></p>
 <p><strong>④TIME_WAIT 和 CLOSE_WAIT</strong></p>
@@ -552,8 +552,8 @@
 <p>在线上时，我们可以直接用命令 netstat -n | awk &lsquo;/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}&lsquo;来查看 time-wait 和 close_wait 的数量。</p>
 <p>用 ss 命令会更快 ss -ant | awk &lsquo;{++S[$1]} END {for(a in S) print a, S[a]}'：</p>
 <p><a href="https://s4.51cto.com/oss/202010/20/0b179ee3d9085eb7a22fa09a278816c3.png">
-        <a data-fancybox="gallery" href="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160148.png">
-            <img class="mx-auto" alt="img" src="https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160148.png" />
+        <a data-fancybox="gallery" href="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160148.png">
+            <img class="mx-auto" alt="img" src="https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210123160148.png" />
         </a>
     </a></p>
 <p>TIME_WAIT：time_wait 的存在一是为了丢失的数据包被后面连接复用，二是为了在 2MSL 的时间范围内正常关闭连接。</p>

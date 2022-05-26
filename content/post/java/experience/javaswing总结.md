@@ -127,7 +127,7 @@ SwingUtilities.updateComponentTreeUI(…);
 
 #### 5.3、boder
 
-![border的使用](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210109214233847.png)
+![border的使用](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/cdn/20210109214233847.png)
 
 ```
 this.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));

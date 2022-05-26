@@ -234,7 +234,7 @@ type: archives
 ```toml
 [params.image_cdn]
     enable = true
-    Host = "https://cdn.jsdelivr.net/gh/user/user.github.io"
+    Host = "https://fastly.jsdelivr.net/gh/user/user.github.io"
 ```
 
 #### Disqus

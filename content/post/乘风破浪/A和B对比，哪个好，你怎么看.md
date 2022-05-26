@@ -7,7 +7,7 @@ date="2022-03-15T21:55:00+08:00"
 url="Comparing-A-and-B-which-is-better.html"
 toc=true
 +++
-![哪个好?](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210719204503800.jpg)
+![哪个好?](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed_02/cdn/20210719204503800.jpg)
 
 ## 1、前言
 

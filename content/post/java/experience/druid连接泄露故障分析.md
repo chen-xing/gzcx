@@ -76,11 +76,11 @@ private Object runSql(List<String> sqlSessionFactotyBeanNameList, MethodInvocati
 
 ### 1.4、问题的表象
 
-![image-20210601165753462](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210601165802.png)
+![image-20210601165753462](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210601165802.png)
 
 
 
-![代码的问题点](https://cdn.jsdelivr.net/gh/chen-xing/figure_bed/images/20210601204828.png)
+![代码的问题点](https://fastly.jsdelivr.net/gh/chen-xing/figure_bed/images/20210601204828.png)
 
 ## 2、如何复现问题
 
