@@ -1,4 +1,4 @@
-baseURL = "https://www.gzcx.net"
+baseURL = "https://www.zchenxing.com"
 languageCode = "zh-CN"
 title = "主人翁"
 theme = "maupassant"
@@ -37,7 +37,7 @@ disqusShortname = ""
   # 全局开关，你也可以在每一篇内容的 front matter 中针对单篇内容关闭或开启某些功能
   toc = true  # 是否开启目录
   
-  beian = "浙ICP备19008730号-3"
+  # beian = "浙ICP备19008730号-3"
 
 ## 友情链接，可以多个
 
@@ -49,7 +49,7 @@ disqusShortname = ""
 [[params.links]]
   title = "程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺"
   name = "程序员导航网"
-  url = "https://www.chenzhuofan.top"
+  url = "https://www.gzcx.net"
 
 
 ## 侧边栏广告位
