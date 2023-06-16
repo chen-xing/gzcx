@@ -22,7 +22,7 @@ Error response from daemon: Cannot restart container 54e6a5481d99: mkdir /var/li
 
 + 查看磁盘占用情况
 
-  ![查看磁盘占用情况](https://oss.94rg.com/figure_bed/20220228164200.png-94rg002)
+  ![查看磁盘占用情况](https://static.gzcx.net/figure_bed/20220228164200.png-94rg002)
 
 可以看到的是系统盘使用已经是100%了，
 
@@ -74,4 +74,4 @@ rm –rf 软链接名称（**请注意不要在后面加”/”，rm –rf 后�
 ls -il
 ```
 
-![软链接查看](https://oss.94rg.com/figure_bed/20220228174948.png-94rg002)
+![软链接查看](https://static.gzcx.net/figure_bed/20220228174948.png-94rg002)

@@ -8,7 +8,7 @@ url="java-memory-optimization.html"
 toc=true
 +++
 ## 1、慎用new
-![优化无极限](https://oss.94rg.com/oneblog/20210724220825605.png-94rg002)
+![优化无极限](https://static.gzcx.net/oneblog/20210724220825605.png-94rg002)
 new就意味着会分配对应的内存空间。利用jdk本身的变量
 
 | 错误              | 建议                   |

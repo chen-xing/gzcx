@@ -52,10 +52,10 @@ jdbc.password=Obsbr4gd1oVyYr+k4KQdUMNYgKMWdDibsNJTabnph+yPmxjc6tUrT1GNsPDqa9ZvTF
 前提:已经配置了jdk环境
 生成密文密码需要准备druid的jar包.然后通过命令行生成,如下步骤:
 1.准备jar包(示例使用 druid-0.2.23.jar),放到某目录下,且打开命令窗口(win用户可以在目录中 shift+鼠标右键 打开命令窗口);
-![file](http://oss.94rg.com/oneblog/article/20191129214550921.png)
+![file](http://static.gzcx.net/oneblog/article/20191129214550921.png)
 2.输入命令:
 java -cp druid-0.2.23.jar com.alibaba.druid.filter.config.ConfigTools you_password
-![file](http://oss.94rg.com/oneblog/article/20191129214613978.png)
+![file](http://static.gzcx.net/oneblog/article/20191129214613978.png)
 我要加密的密码是:123456pwd
 java -cp druid-0.2.23.jar com.alibaba.druid.filter.config.ConfigTools 123456pwd
 回车后,就会看到生成后的密文密码了,复制出来就大功告成,测试....!

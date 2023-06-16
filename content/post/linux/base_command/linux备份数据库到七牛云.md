@@ -114,7 +114,7 @@ qshell qupload  /usr/local/xx/upload.conf (第二个参数是步骤二的配置�
 
 
 	
-![人工博客](http://oss.94rg.com/oneblog/20200314112023114.jpg-94rg002)
+![人工博客](http://static.gzcx.net/oneblog/20200314112023114.jpg-94rg002)
     
 
 ------

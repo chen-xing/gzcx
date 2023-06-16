@@ -29,8 +29,8 @@ gzcx
 愚公移山的执著精神
 > 成功没有捷径，让我们一起秉着人工精神，踏踏实实地走好未来的每一步，做最好的自己。不要让明天的你痛恨今天的自己
 
-![勤奋进取](http://oss.94rg.com/oneblog/20200314112113750.jpeg-94rg002)
-![扫码关注](https://oss.94rg.com/oneblog/20200516153233593.jpg-94rg002)
+![勤奋进取](http://static.gzcx.net/oneblog/20200314112113750.jpeg-94rg002)
+![扫码关注](https://static.gzcx.net/oneblog/20200516153233593.jpg-94rg002)
 
 
 
