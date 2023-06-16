@@ -95,8 +95,8 @@ idea作为一个高频使用的java IDE。性能的好坏,影响着开发的心�
 
 实际上的 -XX:+UseParNewGC:设置年轻代为多线程收集 这个属性被废弃了。
 
-![jdk10以上UseParNewGC被废弃了](https://oss.94rg.com/figure_bed/20210802181021.png-94rg002)
+![jdk10以上UseParNewGC被废弃了](https://static.gzcx.net/figure_bed/20210802181021.png-94rg002)
 
 idea自带的jdk是jdk11,所以是不包含这个属性的。与表象是一致的。
-![idea自带的jdk是jdk11](https://oss.94rg.com/figure_bed/20210802181252.png-94rg002)
+![idea自带的jdk是jdk11](https://static.gzcx.net/figure_bed/20210802181252.png-94rg002)
 

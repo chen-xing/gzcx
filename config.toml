@@ -44,19 +44,19 @@ disqusShortname = ""
 [[params.links]]
   title = "人工博客"
   name = "人工博客"
-  url = "https://www.94rg.com/"
+  url = "https://www.gzcx.net/"
 
 [[params.links]]
   title = "程序员导航网，便于程序员日常使用的网址集合，你想要的都在这里☺"
   name = "程序员导航网"
-  url = "https://www.gzcx.net"
+  url = "https://nav.gzcx.net"
 
 
 ## 侧边栏广告位
 [[params.ads]]
   title = "pan gun running"
-  url = "https://www.94rg.com"
-  img = "https://oss.94rg.com/oneblog/20200516153233593.jpg-94rg002"
+  url = "https://www.gzcx.net"
+  img = "https://static.gzcx.net/oneblog/20200516153233593.jpg-94rg002"
 
 ## 配置 utteranc评论,教程参考 https://utteranc.es/
 [params.utteranc]

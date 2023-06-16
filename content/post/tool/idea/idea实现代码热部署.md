@@ -29,7 +29,7 @@ toc=true
 
 启动之后，需要安装 DCEVM；
 
-![DCEVM安装](https://oss.94rg.com/figure_bed/20220518115014.png-94rg002)
+![DCEVM安装](https://static.gzcx.net/figure_bed/20220518115014.png-94rg002)
 
 点击 Install DCEVM as altjvm， 我这边已经安装成功。
 
@@ -39,7 +39,7 @@ toc=true
 
 开启 插件功能：
 
-![开启热部署插件](https://oss.94rg.com/figure_bed/20220518115109.png-94rg002)
+![开启热部署插件](https://static.gzcx.net/figure_bed/20220518115109.png-94rg002)
 
 插件源码：https://github.com/HotswapProjects/HotswapAgent
 
@@ -47,11 +47,11 @@ toc=true
 
 4 springboot 启动命令，加入 -XXaltjvm=DCEVM
 
-![启动参数](https://oss.94rg.com/figure_bed/20220518134756.png-94rg002)
+![启动参数](https://static.gzcx.net/figure_bed/20220518134756.png-94rg002)
 
 启动后，控制台会输出 hotswap 日志：
 
-![img](https://oss.94rg.com/figure_bed/20220518134856.png-94rg002)
+![img](https://static.gzcx.net/figure_bed/20220518134856.png-94rg002)
 
 
 
@@ -63,7 +63,7 @@ toc=true
 
 我们修改代码后，对代码进行重新编译：
 
-![img](https://oss.94rg.com/figure_bed/20220518134927.png-94rg002)
+![img](https://static.gzcx.net/figure_bed/20220518134927.png-94rg002)
 
 
 
@@ -71,7 +71,7 @@ toc=true
 
 
 
-![img](https://oss.94rg.com/figure_bed/20220518134950.png-94rg002)
+![img](https://static.gzcx.net/figure_bed/20220518134950.png-94rg002)
 
 
 
